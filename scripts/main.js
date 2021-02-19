@@ -48,6 +48,11 @@ window.addEventListener('load', () => {
 	let hideTime;
 	let lock = false;
 	let isFullscreen = false;
+	let isFl = true;
+	let isSk = true;
+
+	let skyTime;
+	let floorTime;
 
 	let id = setInterval(() => {
 		curr = performance.now();
@@ -65,6 +70,16 @@ window.addEventListener('load', () => {
 		if (keys.KeyH && (!hideTime || (curr - hideTime) >= 200)) {
 			hideTime = curr;
 			instruct.hidden = !instruct.hidden;
+		}
+
+		if (keys.KeyF && (!floorTime || (curr - floorTime) >= 200)) {
+			floorTime = curr;
+			isFl = !isFl;
+		}
+
+		if (keys.KeyO && (!skyTime || (curr - skyTime) >= 200)) {
+			skyTime = curr;
+			isSk = !isSk;
 		}
 
 		let forw = 0;
@@ -117,7 +132,7 @@ window.addEventListener('load', () => {
 		}
 	});
 
-	async function render() {
+	function render() {
 		ctx.clearRect(0, 0, snWidth, snHeight);
 		let last;
 		let saved;
@@ -154,8 +169,8 @@ window.addEventListener('load', () => {
 		let c = 240 - Math.round(200 * data1.y / halfSn);
 		//let c = Math.floor(Math.random() * 256);
 		if (c > 230) c = 230;
-		drawSky(data1, data2, c);
-		drawFloor(data1, data2, c);
+		if (isSk) drawSky(data1, data2, c);
+		if (isFl) drawFloor(data1, data2, c);
 		if (data1.hit) {
 			drawWall(data1, data2, c);
 		}
