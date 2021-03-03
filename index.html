@@ -8,20 +8,33 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <canvas id="screen"></canvas>
-    
-    <div class="addData">FPS: <span id="addData"></span></div>
-    <div id="instruct">
-        Управление:<br>
-        H - скрыть подсказки<br>
-        WASD - передвижение<br>
-        Стрелки влево, вправо - поворот камеры<br>
-        Удерживайте Левый Shift чтобы бежать<br>
-        Двойной щелчок - открыть на весь экран<br>
-        (Изначально игра размером под весь экран)<br>
-        L - скрыть мышь и управлять камерой с помощью неё<br>
-        (Мышь может выйти за окно браузера!)
+    <div id="game">
+        <canvas id="screen"></canvas>
+        <div id="header-info" class="hud">
+            <div id="ups" class="info-section">UPS: <span class="count"></span></div>
+            <div id="fps" class="info-section">FPS: <span class="count"></span></div>
+            <div id="addData" class="info-section"></div>
+        </div>
+        <div id="instruct" class="hud" hidden>
+            Управление:<br>
+            H - скрыть подсказки<br>
+            WASD - передвижение<br>
+            Удерживайте Левый Shift чтобы бежать<br>
+            L или двойной клик - скрыть мышь и управлять камерой с помощью неё<br>
+        </div>
+        <div id="end" hidden>Вы прошли! <a href="">Заново?</a></div>
+        <div id="controller">
+            <div class="button-section">
+                <div class="forward button"></div>
+            </div>
+            <div class="button-section">
+                <div class="left button"></div>
+                <div class="right button"></div>
+            </div>
+            <div class="button-section">
+                <div class="backward button"></div>
+            </div>
+        </div>
     </div>
-    <div id="end" hidden>Вы прошли! <a href="">Заново?</a></div>
 </body>
 </html>

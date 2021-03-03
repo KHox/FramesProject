@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>RayCastTest</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #container {
+            border: 3px solid red;
+            width: 500px;
+            height: 300px;
+            margin: auto;
+        }
+
+        #elem {
+            background-color: lightblue;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="elem">
+            text text text text text text text text text text
+            text text text text text text text text text text
+            text text text text text text text text text text
+            text text text text text text text text text text
+            text text text text text text text text text text
+            text text text text text text text text text text
+            text text text text text text text text text text
+            text text text text text text text text text text
+            text text text text text text text text text text
+            text text text text text text text text text text
+            text text text text text text text text text text
+            text text text text text text text text text text
+            text text text text text text text text text text
+            text text text text text text text text text text
+            text text text text text text text text text text
+            text text text text text text text text text text
+            text text text text text text text text text text
+            text text text text text text text text text text
+            text text text text text text text text text text
+            text text text text text text text text text text
+            text text text text text text text text text text
+            text text text text text text text text text text
+            text text text text text text text text text text
+            text text text text text text text text text text
+            text text text text text text text text text text
+            text text text text text text text text text text
+            text text text text text text text text text text
+            text text text text text text text text text text
+        </div>
+    </div>
+
+    <div id="text"></div>
+
+    <input type="range" id="angle" value="0" min="0" max="60" step="1">
+
+    <script>
+        let angle = 0;
+        let width = 500;
+        let height = 300;
+
+        const elem = document.getElementById('elem');
+        const angleInp = document.getElementById('angle');
+        const text = document.getElementById('text');
+
+        document.addEventListener('input', e => {
+            if (e.target == angleInp) {
+                angle = e.target.value;
+
+                let rad = angle * Math.PI / 180;
+                let cos = Math.cos(rad);
+
+                text.textContent = `angle: ${angle}`;
+                //elem.style.width = width / cos + 'px';
+                //elem.style.height = height / cos + 'px';
+                //elem.style.marginLeft = (width - width / cos) / 2 + 'px';
+                elem.style.transform = `perspective(160px) rotateX(${angle}deg)`;
+            }
+        });
+    </script>
+</body>
+</html>

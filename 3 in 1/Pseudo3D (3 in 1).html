@@ -21,6 +21,7 @@
             const halfSn = snHeight / 2;
 
             const screen = document.getElementById('screen');
+            screen.requestPointerLock = screen.requestPointerLock || screen.mozRequestPointerLock || screen.webkitRequestPointerLock;
             screen.width = snWidth;
             screen.height = snHeight;
             document.body.style.width = snWidth + 'px';
@@ -307,11 +308,15 @@
             function toggleFullScreen(close) {
                 let req;
                 if (!isFullscreen && !close) {
-                req = document.body.requestFullScreen || document.body.webkitRequestFullScreen || document.body.mozRequestFullScreen;
-                req.call(document.body);
+                    req = document.body.requestFullScreen || document.body.webkitRequestFullScreen || document.body.mozRequestFullScreen;
+                    req.call(document.body);
+                    screen.requestPointerLock();
+                    lock = true;
                 } else {
-                req = document.cancelFullScreen || document.webkitCancelFullScreen || document.mozCancelFullScreen;
-                req.call(document);
+                    req = document.cancelFullScreen || document.webkitCancelFullScreen || document.mozCancelFullScreen;
+                    req.call(document);
+                    document.exitPointerLock();
+                    lock = false;
                 }
                 isFullscreen = !isFullscreen;
             }
