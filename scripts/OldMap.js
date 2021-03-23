@@ -49,19 +49,18 @@ class GameMap {
                 cell
             };
         } else {
-            let distance
+            let distance;
             if (projX) {
                 let k = projY / projX;
                 let b = y - k * x;
 
-                
                 let lastX = x + length * projX;
                 if (lastX > this.width - 1) {
                     lastX = this.width - 1;
                 } else if (lastX < 0) {
                     lastX = 0;
                 }
-                
+        
                 let lastY = lastX * k + b;
                 if (lastY < 0) {
                     lastY = 0;
@@ -70,38 +69,20 @@ class GameMap {
                     lastY = this.height - 1;
                     lastX = (lastY - b) / k;
                 }
-                
+
                 let xStep = projX < 0 ? -1: 1;
                 let yStep = projY < 0 ? -1: 1;
-
-                let horiz = Math.abs(projX) > Math.abs(projY);
-                
-                distance = Math.sqrt(horiz? Math.sqr(x - xlvl - xStep / 2) + Math.sqr(y - (k * (xlvl + xStep / 2) + b)) : Math.sqr(x - (ylvl + yStep / 2 - b) / k) + Math.sqr(y - ylvl - yStep / 2));
-                let addDist = Math.sqrt(Math.sqr(yStep / k) + 1);
 
                 let rLastX = Math.round(lastX);
                 let rLastY = Math.round(lastY) + yStep;
                 let prevY = ylvl + yStep;
 
                 for (let _x = xlvl; _x != rLastX;) {
-                        let nextY = Math.round((_x + xStep / 2) * k + b);
-
-                        for (let _y = prevY; _y != nextY; _y += yStep) {
-                            cell = this._arr[_y * this.width + _x];
-                            if (distance > length) {
-                                return nullResult;
-                            } else if (cell) {
-                                return {
-                                    hit: true,
-                                    distance,
-                                    cell
-                                };
-                            }
-                            distance += addDist;
-                        }
-                    
-
-                        cell = this._arr[nextY * this.width + _x];
+                    let nextY = Math.round((_x + xStep / 2) * k + b) + yStep;
+                    for (let _y = prevY; _y != nextY; _y += yStep) {
+                        cell = this._arr[_y * this.width + _x];
+                        let fy = _y - yStep / 2;
+                        distance = Math.sqrt(Math.sqr(x - (fy - b) / k) + Math.sqr(y - fy));
                         if (distance > length) {
                             return nullResult;
                         } else if (cell) {
@@ -111,11 +92,12 @@ class GameMap {
                                 cell
                             };
                         }
-                        distance += Math.sqrt(Math.sqr(_x + xStep / 2 - (_y - yStep / 2 - b) / k) + Math.sqr(_y - yStep / 2 - (k * (_x + xStep / 2) + b)));
-                    
+                    }
 
                     _x += xStep;
-                    cell = this._arr[nextY * this.width + _x];
+                    cell = this._arr[(nextY - yStep) * this.width + _x];
+                    let fx = _x - xStep / 2;
+                    distance = Math.sqrt(Math.sqr(x - fx) + Math.sqr(y - (fx * k + b)));
                     if (distance > length) {
                         return nullResult;
                     } else if (cell) {
@@ -125,8 +107,7 @@ class GameMap {
                             cell
                         }
                     }
-                    distance = Math.sqrt(Math.sqr(x - fx) + Math.sqr(y - (fx * k + b)));
-                    
+
                     
                     prevY = nextY;
                 }
@@ -224,7 +205,7 @@ class Wall {
 }
 
 GameMap.mapPrototype = '';
-GameMap.mapPrototype += '######..########################';
+GameMap.mapPrototype += '################################';
 GameMap.mapPrototype += '#......................#.......#';
 GameMap.mapPrototype += '#......................#.......#';
 GameMap.mapPrototype += '#......................#####...#';
@@ -255,4 +236,4 @@ GameMap.mapPrototype += '#....#....#....#....#...#......#';
 GameMap.mapPrototype += '#....#....#....#....#...#......#';
 GameMap.mapPrototype += '#....#....#....#....#...#......#';
 GameMap.mapPrototype += '#..............................#';
-GameMap.mapPrototype += '######..########################';
+GameMap.mapPrototype += '################################';

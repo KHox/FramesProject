@@ -1,4 +1,4 @@
-importScripts('Map.js');
+importScripts('OldMap.js');
 
 const map = new GameMap(0.1, 4);
 

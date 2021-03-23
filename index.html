@@ -2,39 +2,60 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3d</title>
-    <script src="scripts/main.js"></script>
-    <link rel="stylesheet" href="style.css">
+    <title>Document</title>
+    <style>
+        body {
+            margin: 0;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #frames-container {
+            width: 100%;
+            height: 100%;
+            font-size: 0;
+        }
+
+        .frame{
+            width: calc(50% - 0.5px);
+            height: calc(50% - 0.5px);
+            display: inline-block;
+        }
+
+        #frame-1, #frame-2 {
+            border-bottom: 1px solid white;
+        }
+
+        #frame-1, #frame-3 {
+            border-right: 1px solid white;
+        }
+    </style>
 </head>
 <body>
-    <div id="game">
-        <canvas id="screen"></canvas>
-        <div id="header-info" class="hud">
-            <div id="ups" class="info-section">UPS: <span class="count"></span></div>
-            <div id="fps" class="info-section">FPS: <span class="count"></span></div>
-            <div id="addData" class="info-section"></div>
-        </div>
-        <div id="instruct" class="hud" hidden>
-            Управление:<br>
-            H - скрыть подсказки<br>
-            WASD - передвижение<br>
-            Удерживайте Левый Shift чтобы бежать<br>
-            L или двойной клик - скрыть мышь и управлять камерой с помощью неё<br>
-        </div>
-        <div id="end" hidden>Вы прошли! <a href="">Заново?</a></div>
-        <div id="controller">
-            <div class="button-section">
-                <div class="forward button"></div>
-            </div>
-            <div class="button-section">
-                <div class="left button"></div>
-                <div class="right button"></div>
-            </div>
-            <div class="button-section">
-                <div class="backward button"></div>
-            </div>
-        </div>
+    <div id="frames-container">
+        <frame-element id="frame-1" class="frame" >
+            <pseudo-map></pseudo-map>
+            <player-behavior></player-behavior>
+            <fps-ups-system></fps-ups-system>
+        </frame-element>
+        <frame-element id="frame-2" class="frame" fixed-volumes>
+            <fps-ups-system></fps-ups-system>
+            <player-behavior></player-behavior>
+            <pseudo-map></pseudo-map>
+        </frame-element>
+        <frame-element id="frame-3" class="frame">
+            <fps-ups-system></fps-ups-system>
+            <player-behavior></player-behavior>
+            <pseudo-map></pseudo-map>
+        </frame-element>
+        <frame-element id="frame-4" class="frame">
+            <fps-ups-system></fps-ups-system>
+            <player-behavior></player-behavior>
+            <pseudo-map></pseudo-map>
+        </frame-element>
     </div>
+    <script src="scripts/components/fps-ups-system.js" type="module"></script>
+    <script src="scripts/components/pseudo-map.js" type="module"></script>
+    <script src="scripts/components/player-behavior.js" type="module"></script>
 </body>
 </html>
