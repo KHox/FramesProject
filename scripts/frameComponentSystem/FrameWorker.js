@@ -27,7 +27,7 @@ class FrameWorker {
             this._workers = [];
 
             for (let i = 0; i < navigator.hardwareConcurrency; i++) {
-                let nw = new Worker('./scripts/FrameWorker.js');
+                let nw = new Worker('../FrameWorker.js');
                 nw.postMessage({type: 'helper'});
                 this._workers.push(nw);
             }

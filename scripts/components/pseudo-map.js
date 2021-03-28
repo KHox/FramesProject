@@ -1,4 +1,4 @@
-import { RenderableFrameComponent } from "../Frame.js";
+import { RenderableFrameComponent } from "../frameComponentSystem/Frame.js";
 
 export class PseudoMap extends RenderableFrameComponent {
     init() {
@@ -13,7 +13,7 @@ export class PseudoMap extends RenderableFrameComponent {
     }
 
     initRender() {
-        importScripts('OldMap.js');
+        importScripts('../OldMap.js');
         return {
             _map: new GameMap(0.1, 4)
         };

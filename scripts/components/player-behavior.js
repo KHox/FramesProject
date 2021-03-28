@@ -1,4 +1,4 @@
-import { RenderableFrameComponent } from "../Frame.js";
+import { RenderableFrameComponent } from "../frameComponentSystem/Frame.js";
 import { isNumeric } from "../Lib/index.js";
 
 export class PlayerBehavior extends RenderableFrameComponent {
@@ -21,7 +21,7 @@ export class PlayerBehavior extends RenderableFrameComponent {
             return;
         }
 
-        this._moveSpeed = 1.5;
+        this._moveSpeed = 4.5;
         this._sprintMul = 1.5;
 
         this._sens = 1e-3 / 3;

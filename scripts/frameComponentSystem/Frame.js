@@ -1,8 +1,9 @@
-import {isNumeric, isEmpty, fullScreen, pointerLock} from './Lib/index.js';
+import {isNumeric, isEmpty} from '../Lib/index.js';
 
 let hasFullscreened = false;
 
 let isStoped = true;
+let isUpdated = false;
 let fpsId, upsId;
 /**
  * @type {Array<Frame>}
@@ -29,20 +30,25 @@ function updateFunc() {
 
         if (needStop) {
             isStoped = true;
+        } else {
+            isUpdated = true;
         }
     }
 }
 
 function startFrames() {
     fpsId = requestAnimationFrame(startFrames);
-    if (hasFullscreened && activeFrame.isActive) {
-        activeFrame.preRenderFrame();
-    } else {
-        for (const frame of frames) {
-            if (frame.isActive) {
-                frame.preRenderFrame();
+    if (isUpdated) {
+        if (hasFullscreened && activeFrame.isActive) {
+            activeFrame.preRenderFrame();
+        } else {
+            for (const frame of frames) {
+                if (frame.isActive) {
+                    frame.preRenderFrame();
+                }
             }
         }
+        isUpdated = false;
     }
 }
 
@@ -195,9 +201,12 @@ class Frame extends SwitchableElement {
         this._ctx = this._screen.getContext('2d');
         this._ratio = this._getCorrectRatio(this.getAttribute('screen-ratio'));
 
+        this._frameContainer.requestFullScreen = this._frameContainer.requestFullscreen || this._frameContainer.webkitRequestFullScreen || this._frameContainer.mozRequestFullScreen;
+        this._frameContainer.requestPointerLock = this._frameContainer.requestPointerLock || this._frameContainer.mozRequestPointerLock;
+
         this.postRender = this.postRender.bind(this);
         
-        this._worker = new Worker('./scripts/FrameWorker.js');
+        this._worker = new Worker('./scripts/frameComponentSystem/FrameWorker.js');
         this._worker.postMessage({type: 'main'});
         this._worker.addEventListener('message', this.postRender);
         
@@ -376,15 +385,13 @@ class Frame extends SwitchableElement {
         if (document.fullscreenElement) {
             document.exitFullscreen();
             document.exitPointerLock();
-            hasFullscreened = false;
         }
 
         this._isFullscreened = !this._isFullscreened;
 
         if (this._isFullscreened) {
-            fullScreen(this._frameContainer);
-            pointerLock(this._frameContainer);
-            hasFullscreened = true;
+            this._frameContainer.requestFullscreen();
+            this._frameContainer.requestPointerLock();
         }
     }
     
@@ -504,5 +511,14 @@ document.addEventListener('dblclick', e => {
     if (frame) {
         activeFrame = frame;
         frame.toggleFullscreen();
+    }
+});
+
+document.addEventListener('fullscreenchange', e => {
+    if (document.fullscreenElement) {
+        hasFullscreened = true;
+    } else {
+        hasFullscreened = false;
+        frames.forEach(frame => frame._isFullscreened = false);
     }
 });
