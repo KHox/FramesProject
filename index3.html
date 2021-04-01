@@ -9,10 +9,51 @@
             width: 100vw;
             height: 100vh;
         }
+        
+        #container {
+            height: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+        }
+
+        frame-element {
+            border: 5px solid lightblue;
+            margin: 0 auto;
+            width: calc(100% - 10px);
+            height: calc(100% - 10px);
+        }
+
+        frame-element[focused] {
+            border: 5px solid darkblue;
+        }
     </style>
 </head>
 <body>
-    <script src="scripts/frameComponentSystem/initableElement.js" type="module"></script>
-    <my-elem></my-elem>
+    <div id="container">
+        <frame-element>
+            <fps-ups-system></fps-ups-system>
+            <player-behavior></player-behavior>
+            <pseudo-map></pseudo-map>
+        </frame-element>
+    </div>
+    <script src="scripts/FrameSystem/index.js" type="module"></script>
+    <script src="scripts/components/fps-ups-system.js" type="module"></script>
+    <script src="scripts/components/player-behavior.js" type="module"></script>
+    <script src="scripts/components/pseudo-map.js" type="module"></script>
+    <script>
+        addEventListener('load', () => {
+            container.innerHTML = `
+                <frame-element>
+                    <fps-ups-system></fps-ups-system>
+                    <player-behavior></player-behavior>
+                    <pseudo-map></pseudo-map>
+                </frame-element>
+            `.repeat(6);
+
+            const frames = document.querySelectorAll('frame-element');
+            frames.forEach(frame => frame.open());
+        });
+    </script>
 </body>
 </html>

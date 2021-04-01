@@ -1,15 +1,16 @@
-import { RenderableFrameComponent } from "../frameComponentSystem/Frame.js";
+import { FrameRenderableComponent } from "../FrameSystem/index.js";
 
-export class PseudoMap extends RenderableFrameComponent {
-    init() {
-        this._player = this._frame.querySelector('player-behavior');
+export class PseudoMap extends FrameRenderableComponent {
+    onOpen() {
+        this._player = this._frame.getComponents('PlayerBehavior')[0];
         if (!this._player) {
-            this._isActive = false;
+            this.switchOff();
             return;
         }
 
+        this._lineR = 20;
+        this._lineOffset = 20;
         this._moveables = [];
-        super.init();
     }
 
     initRender() {
@@ -61,7 +62,7 @@ export class PseudoMap extends RenderableFrameComponent {
                 hits[x].topOffset = (1 - hits[x].cell.height / 2 / hits[x].distance / tan / Math.cos(angle - data.a)) / 2;
             }
 		}
-
+        
         const result = {
             allRays: hits
         };
@@ -111,6 +112,31 @@ export class PseudoMap extends RenderableFrameComponent {
                 ctx.fill();
             }
         }
+
+        ctx.strokeStyle = 'red';
+        let centerX = this._frame.width / 2;
+        let centerY = this._frame.height / 2;
+
+        ctx.moveTo(centerX - this._lineOffset, centerY);
+        ctx.lineTo(centerX - this._lineOffset - this._lineR, centerY);
+
+        ctx.stroke();
+
+        ctx.moveTo(centerX + this._lineOffset, centerY);
+        ctx.lineTo(centerX + this._lineOffset + this._lineR, centerY);
+
+        ctx.stroke();
+
+        ctx.moveTo(centerX, centerY - this._lineOffset);
+        ctx.lineTo(centerX, centerY - this._lineOffset - this._lineR);
+
+        ctx.stroke();
+
+        ctx.moveTo(centerX, centerY + this._lineOffset);
+        ctx.lineTo(centerX, centerY + this._lineOffset + this._lineR);
+
+        
+        ctx.stroke();
     }
 
     canIMove(moveable, x, y) {

@@ -30,17 +30,17 @@ class GameMap {
         let projY = +Math.sin(a).toFixed(9);
         let xlvl = Math.round(x);
         let ylvl = Math.round(y);
-
+        
         if (xlvl < 0 || xlvl > this.width - 1 || ylvl < 0 || ylvl > this.height - 1) {
             throw new TypeError('Incorrect coordinates');
         }
-
+        
         let nullResult = {
             hit: false,
             distance: length,
             cell: null
         };
-
+        
         let cell = this._arr[ylvl * this.width + xlvl];
         if (cell) {
             return {

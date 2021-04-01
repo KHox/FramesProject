@@ -1,7 +1,7 @@
-import { RenderableFrameComponent } from "../frameComponentSystem/Frame.js";
-import { isNumeric } from "../Lib/index.js";
+import { FrameRenderableComponent } from "../FrameSystem/index.js";
+import { InputFormater, isNumeric, Vec2 } from "../Lib/index.js";
 
-export class PlayerBehavior extends RenderableFrameComponent {
+export class PlayerBehavior extends FrameRenderableComponent {
     get x() {
         return this._x;
     }
@@ -14,10 +14,11 @@ export class PlayerBehavior extends RenderableFrameComponent {
         return this._a;
     }
 
-    init() {
-        this._map = this._frame.querySelector('pseudo-map');
-        if (!(this._map instanceof RenderableFrameComponent)) {
-            this._isActive = false;
+    onOpen() {
+        this._map = this._frame.getComponents('PseudoMap')[0];
+
+        if (!(this._map instanceof FrameRenderableComponent)) {
+            this.switchOff();
             return;
         }
 
@@ -41,17 +42,9 @@ export class PlayerBehavior extends RenderableFrameComponent {
             this._a = 0;
         }
 
-        this._speed = {
-            forward: 0,
-            left: 0,
-            right: 0,
-            backward: 0
-        };
-
-        this._dy = this._dx = 0;
+        this._IF = new InputFormater();
+        this._direction = Vec2.identy;
         this._isSprint = false;
-
-        super.init();
     }
 
     onMouseMove(x, y) {
@@ -61,93 +54,65 @@ export class PlayerBehavior extends RenderableFrameComponent {
     }
 
     onKeyDown(keys) {
-        let isMoveKey = false;
-        if (keys.ShiftLeft) {
+        if (this._IF.down(
+            keys.KeyW,
+            keys.KeyS,
+            keys.KeyA,
+            keys.KeyD
+        )) {
+            if (keys.ShiftLeft) {
+                this._isSprint = true;
+            }
+
+            this.calcMovement();
+        } else if (keys.ShiftLeft) {
             this._isSprint = true;
-            isMoveKey = true;
-        }
-
-        if (keys.KeyW) {
-            this._speed.forward = this._moveSpeed;
-            isMoveKey = true;
-        }
-        if (keys.KeyS) {
-            this._speed.backward = this._moveSpeed;
-            isMoveKey = true;
-        }
-        if (keys.KeyA) {
-            this._speed.left = this._moveSpeed;
-            isMoveKey = true;
-        }
-        if (keys.KeyD) {
-            this._speed.right = this._moveSpeed;
-            isMoveKey = true;
-        }
-
-        if (isMoveKey) {
             this.calcMovement();
         }
     }
 
     onKeyUp(keys) {
-        let isMoveKey = false;
-        if (keys.ShiftLeft) {
+        if (this._IF.up(
+            keys.KeyW,
+            keys.KeyS,
+            keys.KeyA,
+            keys.KeyD
+        )) {
+            if (keys.ShiftLeft) {
+                this._isSprint = false;
+            }
+
+            this.calcMovement();
+        } else if (keys.ShiftLeft) {
             this._isSprint = false;
-            isMoveKey = true;
-        }
-
-        if (keys.KeyW) {
-            this._speed.forward = 0;
-            isMoveKey = true;
-        }
-        if (keys.KeyS) {
-            this._speed.backward = 0;
-            isMoveKey = true;
-        }
-        if (keys.KeyA) {
-            this._speed.left = 0;
-            isMoveKey = true;
-        }
-        if (keys.KeyD) {
-            this._speed.right = 0;
-            isMoveKey = true;
-        }
-
-        if (isMoveKey) {
             this.calcMovement();
         }
     }
 
     calcMovement() {
-        let forw = this._speed.forward - this._speed.backward;
-        let lr = this._speed.right - this._speed.left;
-
-        if (forw && lr) {
-            forw /= Math.sqrt(2);
-            lr /= Math.sqrt(2);
-        }
-
-        let sin = Math.sin(this._a);
-		let cos = Math.cos(this._a);
-
-        this._dx = (forw * cos - lr * sin);
-        this._dy = (forw * sin + lr * cos);
+        let dir = this._IF.getDirection().mul(this._moveSpeed).rotate(this._a + Math.PI / 2);
 
         if (this._isSprint) {
-            this._dx *= this._sprintMul;
-            this._dy *= this._sprintMul;
+            this._direction = dir.mul(this._sprintMul);
+        } else {
+            this._direction = dir;
         }
     }
 
     tick() {
-        if (this._dx || this._dy) {
-            this._map.canIMove(this, this._dx * this._frame.time.deltaTick / 1000, this._dy  * this._frame.time.deltaTick / 1000);
+        if (this._direction.x || this._direction.y) {
+            this._map.canIMove(this, this._direction.x * this._frame.time.deltaTick / 1000, this._direction.y  * this._frame.time.deltaTick / 1000);
         }
     }
 
     moveBy(x, y) {
         this._x += x;
         this._y += y;
+    }
+
+    onBlur() {
+        this._IF.clear();
+        this._direction = Vec2.identy;
     }
 }
 

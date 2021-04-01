@@ -9,53 +9,60 @@
             width: 100vw;
             height: 100vh;
         }
-
-        #frames-container {
-            width: 100%;
+        
+        #container {
             height: 100%;
-            font-size: 0;
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-template-rows: 1fr;
         }
 
-        .frame{
-            width: calc(50% - 0.5px);
-            height: calc(50% - 0.5px);
-            display: inline-block;
+        frame-element {
+            border: 5px solid lightblue;
+            margin: 0 auto;
+            width: calc(100% - 10px);
+            height: calc(100% - 10px);
         }
 
-        #frame-1, #frame-2 {
-            border-bottom: 1px solid white;
-        }
-
-        #frame-1, #frame-3 {
-            border-right: 1px solid white;
+        frame-element[focused] {
+            border: 5px solid darkblue;
         }
     </style>
 </head>
 <body>
-    <div id="frames-container">
-        <frame-element id="frame-1" class="frame" >
-            <pseudo-map></pseudo-map>
-            <player-behavior></player-behavior>
-            <fps-ups-system></fps-ups-system>
-        </frame-element>
-        <frame-element id="frame-2" class="frame" fixed-volumes>
-            <fps-ups-system></fps-ups-system>
-            <player-behavior></player-behavior>
-            <pseudo-map></pseudo-map>
-        </frame-element>
-        <frame-element id="frame-3" class="frame">
-            <fps-ups-system></fps-ups-system>
-            <player-behavior></player-behavior>
-            <pseudo-map></pseudo-map>
-        </frame-element>
-        <frame-element id="frame-4" class="frame" deactivated>
-            <fps-ups-system></fps-ups-system>
-            <player-behavior></player-behavior>
-            <pseudo-map></pseudo-map>
+    <div id="container">
+        <frame-element>
+            <drawing-map-system>
+                <object-2d name="ship"></object-2d>
+                <object-2d name="ship"></object-2d>
+                <object-2d name="ship"></object-2d>
+                <object-2d name="ship"></object-2d>
+                <object-2d name="ship"></object-2d>
+                <object-2d name="ship"></object-2d>
+                <object-2d name="ship"></object-2d>
+                <object-2d name="ship"></object-2d>
+                <object-2d name="ship"></object-2d>
+                <object-2d name="ship"></object-2d>
+                <object-2d name="ship"></object-2d>
+                <object-2d name="ship"></object-2d>
+                <object-2d name="ship"></object-2d>
+                <object-2d name="ship"></object-2d>
+                <object-2d name="ship"></object-2d>
+                <object-2d name="station"></object-2d>
+                <object-2d name="station"></object-2d>
+                <object-2d name="station"></object-2d>
+            </drawing-map-system>
+            <main-script></main-script>
         </frame-element>
     </div>
-    <script src="scripts/components/fps-ups-system.js" type="module"></script>
-    <script src="scripts/components/pseudo-map.js" type="module"></script>
-    <script src="scripts/components/player-behavior.js" type="module"></script>
+    <script src="scripts/FrameSystem/index.js" type="module"></script>
+    <script src="scripts/Extended Frames/WindowsFrame.js" type="module"></script>
+    <script src="scripts/components/DrawingMapSystem/DrawingMapSystem.js" type="module"></script>
+    <script src="scripts/components/my-component.js" type="module"></script>
+    <script type="module">
+        addEventListener('load', () => {
+            Array.from(document.querySelector('#container').children).forEach(frame => frame.open());
+        });
+    </script>
 </body>
 </html>
