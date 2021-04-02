@@ -1,0 +1,186 @@
+html {
+    overflow-x: hidden;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: sans-serif;
+    display: grid;
+    grid-template-columns: 470px 1fr;
+    grid-template-rows: minmax(100vh, 1fr);
+}
+
+.side-bar {
+    width: 100%;
+    font-weight: 750;
+    background-color: lavender;
+    padding: 50px 0;
+    max-height: 100%;
+}
+
+.side-bar-header {
+    text-align: center;
+    font-size: 3em;
+    margin: 0;
+    margin-bottom: 100px;
+    height: auto;
+    cursor: default;
+}
+
+.side-bar ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.apis-list {
+    margin: 0;
+    font-size: 1.4em;
+}
+
+.apis-list ul {
+    overflow: hidden;
+}
+
+.apis-list li {
+    margin: 0;
+    line-height: 70px;
+}
+
+li.folder {
+    margin: 20px 0;
+}
+
+.apis-list li.active {
+    background-color:lightblue;
+}
+
+.folder-info {
+    cursor: pointer;
+}
+
+.folder-info::before {
+    content: '▼';
+    margin-left: -25px;
+}
+
+.folder-info.closed::before {
+    content: '▲';
+}
+
+.folder-info.closed+ul {
+    height: 0;
+}
+
+.apis-list a, .content a {
+    text-decoration: none;
+    color: #00458b;
+    transition-duration: 200ms;
+    cursor: pointer;
+    font-weight: 750;
+}
+
+.apis-list a:hover, .content a:hover {
+    text-decoration: underline;
+    color: steelblue;
+}
+
+.content {
+    height: 100%;
+    width: 100%;
+}
+
+.method-container {
+    margin: 25px;
+}
+
+.header {
+    margin: 35px;
+    font-style: italic;
+    font-weight: 800;
+
+}
+
+.arg {
+    box-sizing: border-box;
+    background-color: rgb(219, 219, 219);
+}
+
+.description {
+    background-color: rgb(226, 226, 226);
+    padding: 15px;
+    margin: 10px 0;
+}
+
+.arg-name {
+    width: max-content;
+    margin: 10px 0;
+    font-weight: 700;
+    font-size: 20px;
+}
+
+.arg-container {
+    margin: 10px ;
+    background-color: rgb(226, 226, 226);
+    padding: 15px;
+    width: max-content;
+    display: inline-block;
+}
+
+.arg-description {
+    margin: 10px 0;
+}
+
+.property-container {
+    margin: 10px ;
+    border: 1px solid black;
+    padding: 15px;
+    display: inline-block;
+}
+
+.prop-name {
+    margin: 10px 0;
+    font-weight: 700;
+    font-size: 20px;
+}
+
+.prop-description{
+    margin: 10px 0;
+    background-color: rgb(226, 226, 226);
+    width: max-content;
+}
+
+.bool {
+    color: royalblue;
+}
+
+.word {
+    background-color: rgb(190, 190, 190);
+    font-weight: 550;
+}
+
+.type {
+    font-style: oblique;
+    font-weight: 600;
+}
+
+.type-name {
+    font-style: normal;
+    font-weight: 300;
+}
+
+.struct-word {
+    color: darkviolet;
+}
+
+.import-string {
+    margin-left: 35px;
+    background-color: rgb(221, 233, 255);
+    font-weight: 550;
+    font-size: 1.2em;
+    width: max-content;
+}
+
+.string {
+    color: rgb(25, 180, 25);
+}

@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <title>API's</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="side-bar">
+        <h1 class="side-bar-header">API's</h1>
+        <ul class="apis-list">
+
+        </ul>
+    </div>
+    <div class="content"></div>
+
+    <script>
+        let apiHelper;
+        const offset = 40;
+        const info = {
+            FrameSystem: {
+                type: 'folder',
+                items: {
+                    SwitchableElement: {
+                        addClassName: true,
+                        extends: '<a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement">HTMLElement</a>',
+                        import: './FrameSystem/index.js',
+                        methods: {
+                            switchOn: {
+                                description: `Включает элемент<br>
+                                На элементе возникает всплывающее событие <span class="word">SwitchOn</span>`
+                            },
+                            switchOff: {
+                                description: `Выключает элемент<br>
+                                На элементе возникает всплывающее событие <span class="word">SwitchOff</span>`
+                            },
+                            toggleSwitch: {
+                                description: `Переключает элемент<br>
+                                <span class="word">Включён</span> => <span class="word">выключен</span> | <span class="word">Выключен</span> => <span class="word">включён</span><br>
+                                Возникает соответствующее событие`
+                            }
+                        },
+                        properties: {
+                            isOn: {
+                                type: 'boolean',
+                                description: 'Возвращает логическое значение включён ли элемент'
+                            }
+                        }
+                    },
+                    EventableElement: {
+                        addClassName: true,
+                        extends: 'SwitchableElement',
+                        import: './FrameSystem/index.js',
+                        methods: {
+                            onOpen: {
+                                description: 'Этот метод вызывается при открытии объекта <a data-key="Frame">Frame</a>'
+                            },
+                            onKeyDown: {
+                                args: {
+                                    keys: {
+                                        type: 'object',
+                                        description: `Объект полями которого являются названия нажатых клавиш<br>
+                                        Если клавиша нажата, то значением поля является <span class="bool">true</span>`
+                                    }
+                                },
+                                description: `Срабатывает при нажатии клавиши<br>
+                                Не срабатывает, если элемент выключен`
+                            },
+                            onKeyUp: {
+                                args: {
+                                    keys: {
+                                        type: 'object',
+                                        description: `Объект полями которого являются названия отжатых клавиш<br>
+                                        Если клавиша отжата, то значением поля является <span class="bool">true</span>`
+                                    }
+                                },
+                                description: `Срабатывает при отпускании клавиши<br>
+                                Не срабатывает, если элемент выключен`
+                            },
+                            onMouseMove: {
+                                args: {
+                                    x: {
+                                        type: 'number',
+                                        description: 'Дельта перемещения мыши по оси X'
+                                    },
+                                    y: {
+                                        type: 'number',
+                                        description: 'Дельта перемещения мыши по оси Y'
+                                    }
+                                },
+                                description: `Вызывается при передвижении мыши<br>
+                                Не срабатывает, если элемент выключен`
+                            },
+                            onMouseDown: {
+                                args: {
+                                    event: {
+                                        type: 'object',
+                                        description: 'Объект события мыши'
+                                    }
+                                },
+                                description: `Вызывается при нажатии кнопки мыши<br>
+                                Объект события содержит свойства:<br>
+                                x, y - координаты мыши, относительно верхнего левого угла окна<br>
+                                buttons - побитово нажатые клавиши (см. <a href="https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent">MouseEvent</a>)<br>
+                                isDown - всегда равно <span class="bool">true</span><br>
+                                Не срабатывает, если элемент выключен`
+                            },
+                            onMouseUp: {
+                                args: {
+                                    event: {
+                                        type: 'object',
+                                        description: 'Объект события мыши'
+                                    }
+                                },
+                                description: `Вызывается, когда кнопка мыши отпущена<br>
+                                Объект события содержит свойства:<br>
+                                x, y - координаты мыши, относительно верхнего левого угла окна<br>
+                                buttons - побитово отпущенные клавиши (см. <a href="https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent">MouseEvent</a>)<br>
+                                isUp - всегда равно <span class="bool">true</span><br>
+                                Не срабатывает, если элемент выключен`
+                            },
+                            onFocus: {
+                                description: `Вызывается когда пользователь переключается на окно<br>
+                                Событие может возникнуть при одновременном нажатии левого шифта и клавиши "Tab" или при клике на окно<br>
+                                Не срабатывает, если элемент выключен`
+                            },
+                            onBlur: {
+                                description: `Вызывается когда пользователь уводит фокус с окна (переключается на другое или кликает вне окна)<br>
+                                Событие может возникнуть при одновременном нажатии левого шифта и клавиши "Tab" или при клике вне окна<br>
+                                Не срабатывает, если элемент выключен`
+                            },
+                            onResize: {
+                                description: `Вызывается при изменении размеров окна<br>
+                                Свойства <span class="word">width</span> и <span class="word">height</span> объекта <a data-key="Frame">Frame</a> будут автоматически изменены<br>
+                                (При фиксированном режиме окна событие не будет срабатывать, так как размеры окна не меняются)<br>
+                                Не срабатывает, если элемент выключен`
+                            },
+                            onSwitchOn: {
+                                args: {
+                                    component: {
+                                        type: '<a data-key="FrameComponent">FrameComponent</a>',
+                                        description: 'Компонент окна, который стал включен'
+                                    }
+                                },
+                                description: `Вызывается при включении одного из компонентов окна<br>
+                                Даже если текущий элемент <span class="word">выключен</span>`
+                            },
+                            onSwitchOff: {
+                                args: {
+                                    component: {
+                                        type: '<a data-key="FrameComponent">FrameComponent</a>',
+                                        description: 'Компонент окна, который стал выключен'
+                                    }
+                                },
+                                description: `Вызывается при выключении одного из компонентов окна<br>
+                                Даже если текущий элемент <span class="word">выключен</span>`
+                            }
+                        }
+                    },
+                    FrameComponent: {
+                        addClassName: true,
+                        extends: 'EventableElement',
+                        import: './FrameSystem/index.js',
+                        methods: {
+                            init: {
+                                args: {
+                                    frame: {
+                                        type: `<a data-key="Frame">Frame</a>`,
+                                        description: `Окно, в которое добавляется компонент`
+                                    }
+                                },
+                                description: `Автоматически вызывается окном при добавлении в него компонента`
+                            },
+                            delete: {
+                                description: `Удаляет компонент из окна`
+                            },
+                            tick: {
+                                description: `Вызывается окном, используется для обновлений компонента<br>
+                                (Для работы со значениями зависящими от времени используйте объект <span class="word">time</span> предоставляемый окном)`
+                            }
+                        },
+                        properties: {
+                            name: {
+                                readonly: true,
+                                type: 'string',
+                                description: `Имя компонента<br>
+                                По умолчанию является именем класса, к которому принадлежит компонент`
+                            },
+                            tickPriority: {
+                                readonly: true,
+                                type: 'number',
+                                description: `Приоритет обновления компонента<br>
+                                Чем больше значение, тем позже других обновится компонент`
+                            }
+                        }
+                    },
+                    FrameRenderableComponent: {
+                        addClassName: true,
+                        extends: 'FrameComponent',
+                        import: './FrameSystem/index.js',
+                        methods: {
+                            initRender: {
+                                returns: 'any',
+                                description: `Вызывается для инициализации контекста (this) для метода <span class="word">render</span><br>
+                                Если методу render нужен заранее сгенерированный контекст, то метод <span class="word">initRender</span> должен возвращать этот контекст<br>
+                                Этот метод выполняется на стороне <a href="https://developer.mozilla.org/en-US/docs/Web/API/Worker">Worker</a>'a поэтому возвращаемый объект не сможет содержать ссылок на текущее окружение`
+                            },
+                            preRender: {
+                                returns: 'any',
+                                description: `Возвращённые методом <span class="word">preRender</span> данные передадутся методу <span class="word">render</span> в качестве объекта <span class="word">"data"</span>`
+                            },
+                            render: {
+                                returns: 'any',
+                                description: `Основной вычислительный метод<br>
+                                Получает контекст от метода <span class="word">initRender</span> и данные из метода <span class="word">preRender</span> в качестве объекта <span class="word">"data"</span><br>
+                                Должен возвращать вычисленные данные для метода отрисовки <span class="word">postRender</span>`
+                            },
+                            postRender: {
+                                args: {
+                                    ctx: {
+                                        type: 'CanvasRenderingContext2D'
+                                    },
+                                    calculatedData: {
+                                        type: 'any'
+                                    }
+                                }
+                            }
+                        },
+                        properties: {
+                            renderPriority: {
+                                readonlye: true,
+                                type: 'number',
+                                description: `Приоритет обновления рендера компонента<br>
+                                Чем больше значение, тем позже других обновится компонент`
+                            }
+                        }
+                    },
+                    Frame: {}
+                }
+            },
+            Library: {
+                type: 'folder',
+                items: {
+                    Classes: {
+                        type: 'folder',
+                        items: {
+                            CoordData: {},
+                            InputFormater: {},
+                            TasksManager: {},
+                            Transform: {},
+                            Vec2: {}
+                        }
+                    },
+                    Functions: {},
+                    Objects: {},
+                    Math: {},
+                    Arrays: {}
+                }
+            },
+            Components: {
+                type: 'folder',
+                items: {
+                    DrawingMapSystem: {
+                        type: 'folder',
+                        items: {
+                            DrawingMapSystem: {}
+                        }
+                    },
+                    FpsUpsSystem: {},
+                    MyComponent: {},
+                    PlayerBehaivor: {},
+                    PseudoMap: {}
+                }
+            }
+        };
+
+        document.addEventListener('click', e => {
+            let folderInfo = e.target.closest('.folder-info');
+            if (folderInfo) {
+                folderInfo.classList.toggle('closed');
+            }
+
+            /**
+             * @type {HTMLAnchorElement}
+             */
+            let a = e.target.closest('a');
+            if (a) {
+                document.querySelectorAll('li').forEach(li => li.classList.remove('active'));
+                let key = a.dataset.key;
+                if (key) {
+                    let data = apiHelper.find(key);
+                    if (data) {
+                        location.href = location.origin + '/API/#' + key;
+                        data.li.classList.add('active');
+                        document.querySelector('.content').innerHTML = apiHelper.getHTML(key, data);
+                        scrollTo(0, 0);
+                    }
+                }
+            }
+        });
+
+        class APIHelper {
+            constructor(explorer, main, offset) {
+                this._explorer = explorer;
+                this._main = main;
+                this._offset = offset;
+                this.add(main);
+            }
+
+            add(obj, _ul = this._explorer, _lvl = 1) {
+                for (const key in obj) {
+                    const prop = obj[key];
+                    let li = document.createElement('li');
+                    if (prop.type == 'folder') {
+                        li.className = 'folder';
+                        let div = document.createElement('div');
+                        div.className = 'folder-info closed';
+                        div.style.paddingLeft = 50 * _lvl + 'px';
+                        div.textContent = key;
+                        li.append(div);
+                        let ul = document.createElement('ul');
+                        li.append(ul);
+                        this.add(prop.items, ul, _lvl + 1);
+                    } else {
+                        let a = document.createElement('a');
+                        a.textContent = key;
+                        a.dataset.key = key;
+                        a.style.paddingLeft = this._offset * _lvl + 'px';
+                        prop.li = li;
+                        li.append(a);
+                    }
+                    _ul.append(li);
+                }
+            }
+
+            getHTML(name, data) {
+                let result = `<h1 class="header">${name}`;
+                if (data.extends) {
+                    result += ` <span class="struct-word">extends</span> `;
+                    if (this.find(data.extends)) {
+                        result += `<a data-key="${data.extends}">${data.extends}</a>`;
+                    } else {
+                        result += data.extends;
+                    }
+                }
+
+                result += '</h1>';
+
+                if (data.import) {
+                    result += `<div class="import-string"><span class="struct-word">import from</span> <span class="string">"${data.import}"</span></div>`;
+                }
+
+                if (data.methods) {
+                    for (let method in data.methods) {
+                        result += `<div class="method-container"><h3 class="method-name">${data.addClassName ? `${name}.${method}` : method}(`;
+                        let methodData = data.methods[method];
+
+                        let args = methodData.args;
+
+                        if (args) {
+                            let argsString = Object.keys(args).join('</span>, <span class="arg">');
+                            result +=  `<span class="arg">${argsString}</span>) : <span class="arg">${methodData.returns || 'void'}</span></h3><div class="args-description">`;
+
+                            for (let argName in args) {
+                                let argData = args[argName];
+                                result += '<div class="arg-container"><div class="arg-name">';
+                                result += argName + `</div><div class="type">@type - <span class="type-name">${argData.type}</span></div>`;
+                                result += `<div class="arg-description">${argData.description}</div></div>`;
+                            }
+
+                            result += '</div>';
+                        } else {
+                            result += `) : <span class="arg">${methodData.returns || 'void'}</span></h3>`;
+                        }
+
+                        if (methodData.description) {
+                            result += `<div class="description">${methodData.description}</div>`;
+                        }
+                        result += '</div>';
+
+                    }
+                }
+
+                if (data.properties) {
+                    for (let [k, v] of Object.entries(data.properties)) {
+                        result += '<div class="property-container">';
+                            result += `<div class="prop-name">${k}</div>`;
+                            result += `<div class="type">@type - <span class="type-name">`;
+                                result += v.type;
+                            result += `</span></div>`;
+                            result += `<div class="prop-description">${v.description}</div>`;
+                            
+                        result += '</div>';
+                    }
+                }
+                return result;
+            }
+
+            find(findingKey, _obj = this._main) {
+                let data = _obj[findingKey];
+                if (data) {
+                    return data;
+                } else {
+                    for (let key in _obj) {
+                        if (_obj[key].type == 'folder') {
+                            data = this.find(findingKey, _obj[key].items);
+                            if (data) {
+                                return data;
+                            }
+                        }
+                    }
+                }
+                return null;
+            }
+        }
+
+        addEventListener('load', () => {
+            apiHelper = new APIHelper(document.querySelector('.apis-list'), info, offset);
+            let hash = location.hash;
+            if (hash.startsWith('#')) {
+                let key = hash.slice(1);
+                let data = apiHelper.find(key);
+                if (data) {
+                    data.li.classList.add('active');
+                    document.querySelector('.content').innerHTML = apiHelper.getHTML(key, data);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
