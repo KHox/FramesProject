@@ -53,12 +53,14 @@
                 <object-2d name="station"></object-2d>
             </drawing-map-system>
             <main-script></main-script>
+            <fps-ups-system></fps-ups-system>
         </frame-element>
     </div>
     <script src="scripts/FrameSystem/index.js" type="module"></script>
     <script src="scripts/Extended Frames/WindowsFrame.js" type="module"></script>
     <script src="scripts/components/DrawingMapSystem/DrawingMapSystem.js" type="module"></script>
     <script src="scripts/components/my-component.js" type="module"></script>
+    <script src="scripts/components/fps-ups-system.js" type="module"></script>
     <script type="module">
         addEventListener('load', () => {
             Array.from(document.querySelector('#container').children).forEach(frame => frame.open());

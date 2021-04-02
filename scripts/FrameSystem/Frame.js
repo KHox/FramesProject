@@ -105,6 +105,7 @@ export class Frame extends SwitchableElement {
                     if (trgt instanceof FrameRenderableComponent) {
                         this._renderableComp.delete(trgt);
                     }
+                    this._allComponents.forEach(c => c.onSwitchOff(trgt));
                 });
             }
         });
@@ -120,6 +121,7 @@ export class Frame extends SwitchableElement {
                         this._renderableComp.push(trgt);
                         this._renderableComp.sort(this._rendCompSort);
                     }
+                    this._allComponents.forEach(c => c.onSwitchOn(trgt));
                 });
             }
         });

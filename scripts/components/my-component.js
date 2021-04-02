@@ -127,6 +127,10 @@ export class Main extends FrameRenderableComponent {
         
         //this._ship.transform.position = this._ship.transform.position.rotate(this._positionAngle * this._frame.time.deltaFrame);
     }
+
+    onBlur() {
+        this._IF.clear();
+    }
 }
 
 customElements.define('main-script', Main);

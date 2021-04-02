@@ -10,4 +10,6 @@ export class EventableElement extends SwitchableElement {
     onFocus() {}
     onBlur() {}
     onResize() {}
+    onSwitchOn(comp) {}
+    onSwitchOff(comp) {}
 }
