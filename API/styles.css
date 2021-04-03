@@ -40,7 +40,7 @@
 }
 
 html {
-    /*overflow-x: hidden;*/
+    overflow-x: hidden;
 }
 
 body {
@@ -49,7 +49,14 @@ body {
     font-family: Roboto mono regular;
     display: grid;
     grid-template-columns: 470px 1fr;
-    grid-template-rows: minmax(100vh, 1fr);
+    grid-template-rows: 71px minmax(100vh, 1fr);
+    transition-property: margin;
+    transition-duration: 200ms;
+    transition-timing-function: ease-in-out;
+}
+
+body.hide {
+    margin-left: -470px;
 }
 
 .side-bar {
@@ -58,6 +65,8 @@ body {
     background-color: lavender;
     padding: 50px 0;
     max-height: 100%;
+    grid-row-start: 1;
+    grid-row-end: 3;
 }
 
 .side-bar-header {
@@ -129,9 +138,49 @@ li.folder {
 /*-------------
     Main styles
 -------------*/
+header {
+    height: 70px;
+    border-bottom: 1px solid darkgrey;
+    display: flex;
+    justify-content: space-between;
+    line-height: 70px;
+    padding-right: 20px;
+    text-align: center;
+    font-size: xx-large;
+    overflow: hidden;
+}
+
+header .hide-button {
+    width: 70px;
+    height: 70px;
+    background-color: rgb(202, 202, 202);
+    cursor: pointer;
+    transition-property: transform, background-color;
+    transition-duration: 200ms;
+}
+
+header .hide-button::after {
+    content: '◀';
+}
+
+header .hide-button:hover {
+    background-color: darkgrey;
+}
+
+header .hide-button:active {
+    width: 60px;
+    height: 60px;
+    margin: 5px;
+    line-height: 60px;
+}
+
+.hide .hide-button {
+
+    transform: rotate(180deg);
+}
+
 
 .content {
-    height: 100%;
     width: 100%;
 }
 
@@ -249,8 +298,28 @@ li.folder {
 }
 
 .version {
+    color: darkgray;
+}
+
+@media (max-width: 800px) {
+
+body {
+    width: 200vw;
+    grid-template-columns: 100vw 100vw;
+}
+
+body.hide {
+    margin-left: -100vw;
+}
+
+header .hide-button {
     position: absolute;
     top: 0;
     right: 0;
-    color: darkgray;
+}
+
+.hide header .hide-button {
+    position: inherit;
+}
+
 }
