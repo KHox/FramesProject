@@ -1,11 +1,52 @@
+@font-face {
+    font-family: 'Roboto mono bold';
+    src: url(../fonts/Roboto_Mono/RobotoMono-Bold.ttf);
+}
+@font-face {
+    font-family: 'Roboto mono boldItalic';
+    src: url(../fonts/Roboto_Mono/RobotoMono-BoldItalic.ttf);
+}
+@font-face {
+    font-family: 'Roboto mono italic';
+    src: url(../fonts/Roboto_Mono/RobotoMono-Italic.ttf);
+}
+@font-face {
+    font-family: 'Roboto mono light';
+    src: url(../fonts/Roboto_Mono/RobotoMono-Light.ttf);
+}
+@font-face {
+    font-family: 'Roboto mono lightItalic';
+    src: url(../fonts/Roboto_Mono/RobotoMono-LightItalic.ttf);
+}
+@font-face {
+    font-family: 'Roboto mono medium';
+    src: url(../fonts/Roboto_Mono/RobotoMono-Medium.ttf);
+}
+@font-face {
+    font-family: 'Roboto mono mediumItalic';
+    src: url(../fonts/Roboto_Mono/RobotoMono-MediumItalic.ttf);
+}
+@font-face {
+    font-family: 'Roboto mono regular';
+    src: url(../fonts/Roboto_Mono/RobotoMono-Regular.ttf);
+}
+@font-face {
+    font-family: 'Roboto mono thin';
+    src: url(../fonts/Roboto_Mono/RobotoMono-Thin.ttf);
+}
+@font-face {
+    font-family: 'Roboto mono thinItalic';
+    src: url(../fonts/Roboto_Mono/RobotoMono-ThinItalic.ttf);
+}
+
 html {
-    overflow-x: hidden;
+    /*overflow-x: hidden;*/
 }
 
 body {
     margin: 0;
     padding: 0;
-    font-family: sans-serif;
+    font-family: Roboto mono regular;
     display: grid;
     grid-template-columns: 470px 1fr;
     grid-template-rows: minmax(100vh, 1fr);
@@ -85,20 +126,27 @@ li.folder {
     color: steelblue;
 }
 
+/*-------------
+    Main styles
+-------------*/
+
 .content {
     height: 100%;
     width: 100%;
 }
 
-.method-container {
-    margin: 25px;
+.content>* {
+    padding-left: 40px;
+}
+
+.method-container, .properties-container {
+    margin: 25px 0 25px 25px;
 }
 
 .header {
-    margin: 35px;
+    margin: 35px 0;
     font-style: italic;
     font-weight: 800;
-
 }
 
 .arg {
@@ -108,8 +156,16 @@ li.folder {
 
 .description {
     background-color: rgb(226, 226, 226);
-    padding: 15px;
     margin: 10px 0;
+}
+
+.description.method, .description.prop {
+    padding: 15px;
+}
+
+.description.post {
+    padding: 15px 40px;
+    margin: 40px 0;
 }
 
 .arg-name {
@@ -120,7 +176,7 @@ li.folder {
 }
 
 .arg-container {
-    margin: 10px ;
+    margin-right: 20px;
     background-color: rgb(226, 226, 226);
     padding: 15px;
     width: max-content;
@@ -131,11 +187,9 @@ li.folder {
     margin: 10px 0;
 }
 
-.property-container {
-    margin: 10px ;
-    border: 1px solid black;
-    padding: 15px;
-    display: inline-block;
+.lines-container {
+    background-color: lavender;
+    width: max-content;
 }
 
 .prop-name {
@@ -144,7 +198,7 @@ li.folder {
     font-size: 20px;
 }
 
-.prop-description{
+.prop-description {
     margin: 10px 0;
     background-color: rgb(226, 226, 226);
     width: max-content;
@@ -155,8 +209,7 @@ li.folder {
 }
 
 .word {
-    background-color: rgb(190, 190, 190);
-    font-weight: 550;
+    font-weight: 600;
 }
 
 .line-key {
@@ -173,8 +226,13 @@ li.folder {
     color: darkviolet;
 }
 
+.html {
+    color: crimson;
+}
+
 .import-string {
-    margin-left: 35px;
+    margin-left: 40px;
+    padding-left: 0;
     background-color: rgb(221, 233, 255);
     font-weight: 550;
     font-size: 1.2em;
@@ -183,4 +241,16 @@ li.folder {
 
 .string {
     color: rgb(25, 180, 25);
+}
+
+.container-header {
+    font-size: 1.5em;
+    font-weight: 550;
+}
+
+.version {
+    position: absolute;
+    top: 0;
+    right: 0;
+    color: darkgray;
 }

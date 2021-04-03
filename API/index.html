@@ -8,6 +8,7 @@
 </head>
 
 <body>
+    <div class="version">0.0.4</div>
     <div class="side-bar">
         <h1 class="side-bar-header">API's</h1>
         <ul class="apis-list">
@@ -19,7 +20,7 @@
     <script type="module">
         import { APIHelper } from "./APIHelper.js";
         import { INFO } from "./DB.js";
-        let apiHelper;
+        let apiHelper, apiList;
         let state = new URLSearchParams(location.search);
         const offset = 40;
 
@@ -61,17 +62,24 @@
         });
 
         addEventListener('load', () => {
+            apiList = document.querySelector('.apis-list');
             let page = state.get('page');
             let opened = state.get('open');
 
             if (opened) {
                 opened = opened.split(';');
             }
-            apiHelper = new APIHelper(document.querySelector('.apis-list'), INFO, offset, opened);
+            apiHelper = new APIHelper(apiList, INFO, offset, opened);
             if (page) {
                 let data = apiHelper.find(page);
                 if (data) {
                     data.li.classList.add('active');
+                    let folder = data.li.closest('li.folder');
+                    while (apiList.contains(folder)) {
+                        folder.querySelector('.folder-info').classList.remove('closed');
+                        folder = folder.parentElement.closest('li.folder');
+                        break;
+                    }
                     document.querySelector('.content').innerHTML = apiHelper.getHTML(page, data);
                 }
             }

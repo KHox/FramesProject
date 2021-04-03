@@ -114,6 +114,9 @@ export class APIHelper {
     _getMethod(method, data, addIfNeed, name) {
         let result = `<div class="method-container">\n`;
         result += `<h3 class="method-name">`;
+        if (data.isAsync) {
+            result += '<span class="struct-word">async</span> ';
+        }
         if (addIfNeed) {
             result += name + '.';
         }
