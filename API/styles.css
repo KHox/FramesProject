@@ -159,12 +159,12 @@ li.folder {
     font-weight: 550;
 }
 
-.type {
+.line-key {
     font-style: oblique;
     font-weight: 600;
 }
 
-.type-name {
+.type {
     font-style: normal;
     font-weight: 300;
 }
