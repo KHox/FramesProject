@@ -1,5 +1,5 @@
 import { FrameRenderableComponent } from "../FrameSystem/index.js";
-import { InputFormater, Vec2 } from "../Lib/index.js";
+import { InputFormater, Ray, Vec2 } from "../Lib/index.js";
 import { Object2D } from "./DrawingMapSystem/DrawingMapSystem.js";
 
 export class Main extends FrameRenderableComponent {
@@ -63,6 +63,9 @@ export class Main extends FrameRenderableComponent {
 
             setRandOutline(s);
         });
+
+        this._rays = [];
+        this._p1 = null;
     }
 
     onKeyDown(keys) {
@@ -116,7 +119,7 @@ export class Main extends FrameRenderableComponent {
         }
     }
 
-    postRender() {
+    postRender(ctx) {
         this._ships.forEach(ship => {
             ship.transform.rotation += -this._rotateAngle * this._frame.time.deltaFrame;
         });
@@ -124,12 +127,75 @@ export class Main extends FrameRenderableComponent {
         this._stations.forEach(ship => {
             ship.transform.rotation += -this._rotateAngle * this._frame.time.deltaFrame;
         });
+
+        let arr;
+
+        if (this._p1 && this._p2) {
+            this.drawLine(ctx, this._p1, this._p2, 'lime');
+
+            let rayData = {
+                ray: Ray.createByPoints(this._p1, this._p2),
+                isCollide: false
+            };
+            
+            arr = this._rays.concat(rayData);
+        } else {
+            arr = this._rays;
+        }
+
+        this.checkRays(arr);
+        arr.forEach(rd => {
+            this.drawLine(ctx, rd.ray.origin, rd.ray.origin.plus(rd.ray.direction), rd.isCollide ? 'red' : 'lime');
+            rd.isCollide = false;
+        });
         
         //this._ship.transform.position = this._ship.transform.position.rotate(this._positionAngle * this._frame.time.deltaFrame);
+    }
+    
+    drawLine(ctx, p1, p2, color) {
+        ctx.beginPath();
+        ctx.strokeStyle = color;
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.stroke();
     }
 
     onBlur() {
         this._IF.clear();
+    }
+
+    onMouseDown(data) {
+        this._p1 = new Vec2(data.x, data.y);
+        this._p2 = this._p1;
+    }
+
+    onMouseMove(x, y) {
+        if (this._p1 && this._p2) {
+            this._p2 = this._p2.plus(new Vec2(x, y));
+        }
+    }
+
+    onMouseUp(data) {
+        if (this._p1 && this._p2) {
+            let rayData = {
+                ray: Ray.createByPoints(this._p1, this._p2),
+                isCollide: false
+            };
+            this._rays.push(rayData);
+        }
+        this._p1 = null;
+        this._p2 = null;
+    }
+
+    checkRays(rays) {
+        for (let i = 0; i < rays.length; i++) {
+            for (let j = i + 1; j < rays.length; j++) {
+                if (rays[i].ray.getCollidePoint(rays[j].ray)) {
+                    rays[i].isCollide = true;
+                    rays[j].isCollide = true;
+                }
+            }
+        }
     }
 }
 

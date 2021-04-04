@@ -421,7 +421,6 @@ export class Frame extends SwitchableElement {
         this._ctx.textBaseline = 'top';
         this._ctx.font = '15px sans-serif';
 
-
         this._renderableComp.forEach(renderData => {
             renderData.component.postRender(this._ctx, e.data[renderData.id]);
         });

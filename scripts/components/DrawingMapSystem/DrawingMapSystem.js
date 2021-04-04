@@ -1,5 +1,5 @@
 import { FrameRenderableComponent } from "../../FrameSystem/index.js";
-import { isNumeric, Transform } from "../../Lib/index.js";
+import { Collider, isNumeric, Transform } from "../../Lib/index.js";
 
 export class DrawingMapSystem extends FrameRenderableComponent {
     constructor() {

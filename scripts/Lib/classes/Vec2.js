@@ -117,4 +117,12 @@ export class Vec2 {
     valueOf() {
         return [this._x, this._y];
     }
+
+    prod(vector) {
+        if (vector instanceof Vec2) {
+            return this._x * vector.y - this._y * vector.x;
+        } else {
+            throw new TypeError('Vec2 expected');
+        }
+    }
 }

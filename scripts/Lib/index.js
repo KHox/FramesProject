@@ -6,6 +6,8 @@ export * from "./classes/Vec2.js";
 export * from "./classes/InputFormater.js";
 export * from "./classes/CoordData.js";
 export * from "./classes/Transform.js";
+export * from "./classes/Collider.js";
+export * from "./classes/Ray.js";
 
 Array.prototype.delete = function(elem) {
     let ind = this.indexOf(elem);
