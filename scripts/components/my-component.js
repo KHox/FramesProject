@@ -31,20 +31,27 @@ export class Main extends FrameRenderableComponent {
 
         const w5 = this._frame.width / 5;
         const h3 = this._frame.height / 3;
-        const xOff = w5 / 2; 
-        const yOff = h3 / 2;
+
+        const maxSize = Math.min(w5, h3);
+
+        let yOff = -h3 * 2;
         
         this._ships.forEach((ship, i) => {
             ship.src = `./img/Space ships/SpaceShip${i + 1}.png`;
-            ship.transform = [xOff + w5 * (i % 5), yOff + h3 * Math.floor(i / 5), Math.PI * Math.random()];
             ship.onload = onLoad;
+            
+            if (i % 5 == 0) {
+                yOff += h3;
+            }
+            ship.transform = [w5 * ((i % 5) - 2), yOff, Math.PI * Math.random()];
             
             setRandOutline(ship);
         });
         
         function onLoad(ship) {
-            if (ship.height > h3) {
-                let mul = h3 / ship.height;
+            let max = Math.max(ship.width, ship.height);
+            if (max > maxSize) {
+                let mul = maxSize / max;
                 ship.height *= mul;
                 ship.width *= mul;
             }
@@ -64,7 +71,7 @@ export class Main extends FrameRenderableComponent {
         
         this._stations.forEach((s, i) => {
             s.src = `./img/Stations/SS1_tier${i + 1}.png`;
-            s.transform = [this._frame.width + w3 / 2 + i * w3, this._frame.height / 2, Math.PI * Math.random()];
+            s.transform = [this._frame.width + (i - 1) * w3, 0, Math.PI * Math.random()];
             
             setRandOutline(s);
         });

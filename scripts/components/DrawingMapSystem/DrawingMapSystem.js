@@ -34,7 +34,7 @@ export class DrawingMapSystem extends FrameRenderableComponent {
      */
     drawObject2d(o2d) {
         let w, h, image;
-
+        
         if (o2d.outline.color) {
             let offW = o2d.outline.width;
             let offH = o2d.outline.height;
@@ -170,11 +170,11 @@ export class Object2D extends HTMLElement {
             this._width = v;
         }
     }
-
+    
     get height() {
         return this._height;
     }
-
+    
     set height(v) {
         if (isNumeric(v)) {
             this._height = v;
