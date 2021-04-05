@@ -1,5 +1,5 @@
 import { FrameRenderableComponent } from "../../FrameSystem/index.js";
-import { Collider, isNumeric, Transform } from "../../Lib/index.js";
+import { Collider, isNumeric, Transform, Vec2 } from "../../Lib/index.js";
 
 export class DrawingMapSystem extends FrameRenderableComponent {
     constructor() {
@@ -8,6 +8,7 @@ export class DrawingMapSystem extends FrameRenderableComponent {
         this._dmsCtx = this._dmsCanvas.getContext('2d');
 
         this._cameraTransform = new Transform();
+        this._camRotMat = null;
     }
 
     get cameraTransform() {
@@ -16,17 +17,15 @@ export class DrawingMapSystem extends FrameRenderableComponent {
     
     onOpen() {
         this._ctx = this._frame.ctx;
-        
-        this._centerX = this._frame.width / 2;
-        this._centerY = this._frame.height / 2;
-
         /**
          * @type {Array<Object2D>}
          */
         this._objects = Array.from(this.children).filter(c => c instanceof Object2D);
+        this._center = new Vec2(this._frame.centerX, this._frame.centerY);
     }
 
     postRender() {
+        this._camRotMat = this._cameraTransform.rotationMatrix;
         this._objects.forEach(o2d => this.drawObject2d(o2d));
     }
 
@@ -64,13 +63,16 @@ export class DrawingMapSystem extends FrameRenderableComponent {
             image = o2d.image;
         }
 
-        let x = this._centerX + o2d.transform.position.x - this._cameraTransform.position.x;
-        let y = this._centerY + o2d.transform.position.y - this._cameraTransform.position.y;
-
+        
         this._ctx.save();
+        
+        let rotM = Transform.getRotationMatrix((o2d.transform.rotation + this._cameraTransform.rotation));
+        let pos = this._worldToCameraMatrix(o2d.transform.position);
 
-        this._ctx.translate(x, y);
-        this._ctx.rotate(o2d.transform.rotation - this._cameraTransform.rotation);
+        this._ctx.setTransform(...rotM, pos.x, pos.y);
+
+        //this._ctx.translate(x, y);
+        //this._ctx.rotate(o2d.transform.rotation - this._cameraTransform.rotation);
         this._ctx.translate(-w / 2, -h / 2);
 
         this._ctx.drawImage(image, 0, 0, w, h);
@@ -82,9 +84,37 @@ export class DrawingMapSystem extends FrameRenderableComponent {
         return this._objects.filter(o => o.name == name);
     }
 
+    drawLine(p1, p2, color) {
+        p1 = this.worldToCameraMatrix(p1);
+        p2 = this.worldToCameraMatrix(p2);
+        this._ctx.beginPath();
+        this._ctx.strokeStyle = color;
+        this._ctx.moveTo(p1.x, p1.y);
+        this._ctx.lineTo(p2.x, p2.y);
+        this._ctx.stroke();
+    }
+
+    /**
+     * @param {Vec2} point
+     */
+    worldToCameraMatrix(point) {
+        this._camRotMat = this._cameraTransform.rotationMatrix;
+        return this._worldToCameraMatrix(point);
+    }
+    
+    _worldToCameraMatrix(point) {
+        return point.minus(this._cameraTransform.position).rotateByMatrix(this._camRotMat).plus(this._center);
+    }
+
+    /**
+     * @param {Vec2} point
+     */
+    screenToWorldMatrix(point) {
+        return this._cameraTransform.position.plus(point.minus(this._center).rotateByMatrix(Transform.reverseMatrix(this._cameraTransform.rotationMatrix)));
+    }
+
     onResize() {
-        this._centerX = this._frame.width / 2;
-        this._centerY = this._frame.height / 2;
+        this._center = new Vec2(this._frame.centerX, this._frame.centerY);
     }
 }
 

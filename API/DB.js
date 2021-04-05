@@ -76,11 +76,23 @@ export const INFO = {
                     },
                     onMouseMove: {
                         args: {
-                            x: {
+                            event: {
+                                type: 'object',
+                                description: 'Объект события мыши'
+                            },
+                            ['event.x']: {
+                                type: 'number',
+                                description: 'Координата X мыши относительно верхнего левого угла окна'
+                            },
+                            ['event.y']: {
+                                type: 'number',
+                                description: 'Координата Y мыши относительно верхнего левого угла окна'
+                            },
+                            ['event.dx']: {
                                 type: 'number',
                                 description: 'Дельта перемещения мыши по оси X'
                             },
-                            y: {
+                            ['event.dy']: {
                                 type: 'number',
                                 description: 'Дельта перемещения мыши по оси Y'
                             }
@@ -93,11 +105,18 @@ export const INFO = {
                             event: {
                                 type: 'object',
                                 description: 'Объект события мыши'
+                            },
+                            ['event.x']: {
+                                type: 'number',
+                                description: 'Координата X мыши относительно верхнего левого угла окна'
+                            },
+                            ['event.y']: {
+                                type: 'number',
+                                description: 'Координата Y мыши относительно верхнего левого угла окна'
                             }
                         },
                         description: `Вызывается при нажатии кнопки мыши<br>
                         Объект события содержит свойства:<br>
-                        x, y - координаты мыши, относительно верхнего левого угла окна<br>
                         buttons - побитово нажатые клавиши (см. <a href="https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent">MouseEvent</a>)<br>
                         isDown - всегда равно <span class="bool">true</span><br>
                         Не срабатывает, если элемент выключен`
@@ -107,11 +126,18 @@ export const INFO = {
                             event: {
                                 type: 'object',
                                 description: 'Объект события мыши'
+                            },
+                            ['event.x']: {
+                                type: 'number',
+                                description: 'Координата X мыши относительно верхнего левого угла окна'
+                            },
+                            ['event.y']: {
+                                type: 'number',
+                                description: 'Координата Y мыши относительно верхнего левого угла окна'
                             }
                         },
                         description: `Вызывается, когда кнопка мыши отпущена<br>
                         Объект события содержит свойства:<br>
-                        x, y - координаты мыши, относительно верхнего левого угла окна<br>
                         buttons - побитово отпущенные клавиши (см. <a href="https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent">MouseEvent</a>)<br>
                         isUp - всегда равно <span class="bool">true</span><br>
                         Не срабатывает, если элемент выключен`

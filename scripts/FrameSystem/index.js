@@ -1,7 +1,7 @@
 export { EventableElement } from "./ComponentBase/EventableElement.js";
 export { FrameRenderableComponent } from "./ComponentBase/FrameRenderableComponent.js";
-import { Frame } from "./Frame.js";
-export { Frame };
+import { Frame, FrameComponent } from "./Frame.js";
+export { Frame, FrameComponent };
 export { SwitchableElement } from "./SwitchableElement.js";
 
 let updatesId, fpsId;
@@ -179,7 +179,7 @@ document.addEventListener('keyup', e => {
 });
 
 document.addEventListener('mousemove', e => {
-    if (currentFocused) currentFocused.mouseMove(e.movementX, e.movementY);
+    handleEvent(e, 'mouseMove');
 });
 
 document.addEventListener('mousedown', e => {
@@ -187,26 +187,24 @@ document.addEventListener('mousedown', e => {
 
     setFocus(frame);
 
-    if (currentFocused) {
-        const {left, top} = currentFocused.getBoundingClientRect();
-        currentFocused.mouseDown(
-            e.clientX - left,
-            e.clientY - top,
-            e.buttons
-        );
-    }
+    handleEvent(e, 'mouseDown');
 });
 
 document.addEventListener('mouseup', e => {
+    handleEvent(e, 'mouseUp');
+});
+
+function handleEvent(e, name) {
     if (currentFocused) {
         const {left, top} = currentFocused.getBoundingClientRect();
-        currentFocused.mouseUp(
+        currentFocused[name](
             e.clientX - left,
             e.clientY - top,
-            e.buttons
+            e.buttons,
+            e
         );
     }
-});
+}
 
 document.addEventListener('click', e => {
 });

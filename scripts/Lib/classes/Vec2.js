@@ -118,11 +118,29 @@ export class Vec2 {
         return [this._x, this._y];
     }
 
-    prod(vector) {
+    cross(vector) {
         if (vector instanceof Vec2) {
             return this._x * vector.y - this._y * vector.x;
         } else {
             throw new TypeError('Vec2 expected');
         }
+    }
+
+    getAngle() {
+        if (this._x || this._y) {
+            let r = Math.atan(this._y / this._x);
+            if (this._x < 0) {
+                r += Math.PI;
+            } else if (this._y < 0) {
+                r += Math.PI * 2;
+            }
+            return r;
+        } else {
+            return 0;
+        }
+    }
+
+    rotateByMatrix(rotM) {
+        return new Vec2(rotM[0], rotM[1]).mul(this._x).plus(new Vec2(rotM[2], rotM[3]).mul(this._y));
     }
 }

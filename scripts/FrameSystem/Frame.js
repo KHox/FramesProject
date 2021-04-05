@@ -45,6 +45,8 @@ export class Frame extends SwitchableElement {
 
         this._width = null;
         this._height = null;
+        this._centerX = null;
+        this._centerY = null;
         this._priority = 1;
 
         this._open = this._open.bind(this);
@@ -154,6 +156,14 @@ export class Frame extends SwitchableElement {
 
     get height() {
         return this._height;
+    }
+
+    get centerX() {
+        return this._centerX;
+    }
+
+    get centerY() {
+        return this._centerY;
     }
 
     get priority() {
@@ -277,6 +287,8 @@ export class Frame extends SwitchableElement {
         if (isNumeric(width) && isNumeric(height)) {
             this._canvas.width = this._width = width;
             this._canvas.height = this._height = height;
+            this._centerX = width / 2;
+            this._centerY = height / 2;
             this._isFixed = true;
         } else {
             throw new TypeError('Numbers expected');
@@ -290,6 +302,8 @@ export class Frame extends SwitchableElement {
     _resize() {
         this._canvas.width = this._width = this._canvas.clientWidth;
         this._canvas.height = this._height = this._canvas.clientHeight;
+        this._centerX = this._width / 2;
+        this._centerY = this._height / 2;
 
         this._onComponents.forEach(c => c.onResize());
     }
@@ -355,12 +369,15 @@ export class Frame extends SwitchableElement {
 
         if (this._mouse.move.isMove) {
             this._onComponents.forEach(c => {
-                c.onMouseMove(this._mouse.move.x, this._mouse.move.y);
+                c.onMouseMove(this._mouse.move);
             });
 
             this._mouse.move = {
                 x: 0,
                 y: 0,
+                dx: 0,
+                dy: 0,
+                buttons: 0,
                 isMove: false
             };
         }
@@ -422,7 +439,9 @@ export class Frame extends SwitchableElement {
         this._ctx.font = '15px sans-serif';
 
         this._renderableComp.forEach(renderData => {
+            this._ctx.save();
             renderData.component.postRender(this._ctx, e.data[renderData.id]);
+            this._ctx.restore();
         });
     }
 
@@ -454,11 +473,14 @@ export class Frame extends SwitchableElement {
         this._keysUp[key] = true;
     }
 
-    mouseMove(x, y) {
+    mouseMove(x, y, buttons, e) {
         const moveData = this._mouse.move;
         moveData.isMove = true;
-        moveData.x += x;
-        moveData.y += y;
+        moveData.x = x;
+        moveData.y = y;
+        moveData.dx += e.movementX;
+        moveData.dy += e.movementY;
+        moveData.buttons = buttons;
     }
 
     mouseDown(x, y, buttons) {

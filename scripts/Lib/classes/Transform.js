@@ -1,9 +1,10 @@
 import { CoordsData } from "./CoordData.js";
+import { Vec2 } from "./Vec2.js";
 
 export class Transform {
-    constructor() {
-        this._p = new CoordsData(0, 0);
-        this._a = 0;
+    constructor(x = 0, y = 0, angle = 0) {
+        this.rotation = angle;
+        this._p = new CoordsData(x, y);
     }
 
     get position() {
@@ -14,20 +15,51 @@ export class Transform {
         this._p.set(...v.valueOf());
     }
 
+    get rotationMatrix() {
+        return Transform.getRotationMatrix(this._angle);
+    }
+
     get rotation() {
-        return this._a;
+        return this._angle;
     }
 
     set rotation(v) {
-        this._a = v;
+        this._angle = v;
     }
 
     set(x, y, rotation) {
         this._p.set(x, y);
-        this._a = rotation;
+        this.rotation = rotation;
     }
 
     valueOf() {
-        [this._p.x, this._p.y, this._a];
+        [this._a, this._b, this._c, this._d, this._p.x, this._p.y];
+    }
+
+    /**
+     * @param {Vec2} point
+     * @param {number} angle
+     */
+    rotateAroundPoint(point, angle) {
+
+    }
+
+    /**
+     * @param {Vec2} point
+     */
+    lookAt(point) {
+        this.rotation = -point.minus(this._p).getAngle();
+    }
+
+    static getRotationMatrix(angle) {
+        let c = Math.cos(angle);
+        let s = Math.sin(angle);
+        return [c, -s, s, c];
+    }
+
+    static reverseMatrix(m) {
+        return [m[0], m[2], m[1], m[3]];
     }
 }
+
+window.Transform = Transform;

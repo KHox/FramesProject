@@ -34,8 +34,8 @@ export class Ray {
         let ac = ray.origin.minus(this._o);
         let ad = ac.plus(ray.direction);
         
-        let z1 = this._d.prod(ac);
-        let z2 = this._d.prod(ad);
+        let z1 = this._d.cross(ac);
+        let z2 = this._d.cross(ad);
 
         if (z1 > 0 && z2 > 0 || z1 < 0 && z2 < 0) {
             return null;
@@ -44,8 +44,8 @@ export class Ray {
         let ca = this._o.minus(ray.origin);
         let cb = ca.plus(this._d);
 
-        z1 = ray.direction.prod(ca);
-        z2 = ray.direction.prod(cb);
+        z1 = ray.direction.cross(ca);
+        z2 = ray.direction.cross(cb);
 
         if (z1 > 0 && z2 > 0 || z1 < 0 && z2 < 0) {
             return null;

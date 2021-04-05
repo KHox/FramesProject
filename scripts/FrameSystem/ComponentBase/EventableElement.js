@@ -4,7 +4,7 @@ export class EventableElement extends SwitchableElement {
     onOpen() {}
     onKeyDown(keys) {}
     onKeyUp(keys) {}
-    onMouseMove(x, y) {}
+    onMouseMove(evt) {}
     onMouseDown(evt) {}
     onMouseUp(evt) {}
     onFocus() {}
