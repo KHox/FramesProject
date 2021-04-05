@@ -9,7 +9,8 @@ export class Main extends FrameRenderableComponent {
         /**
          * @type {Array<Object2D>}
          */
-        this._ships = this._dms.getObjectsByName('ship');
+        this._ships = this._dms.getObjectsByName('ship', true);
+        this._stations = this._dms.getObjectsByName('station', true);
 
         this._rotateAngle = Math.PI / 3000;
         this._positionAngle = Math.PI / 6000;
@@ -29,57 +30,8 @@ export class Main extends FrameRenderableComponent {
         this._moving = false;
         this._p1 = this._p2 = this._mp = Vec2.identy;
 
-        const w5 = this._frame.width / 5;
-        const h3 = this._frame.height / 3;
-
-        const maxSize = Math.min(w5, h3);
-
-        let yOff = -h3 * 2;
-        
-        this._ships.forEach((ship, i) => {
-            ship.src = `./img/Space ships/SpaceShip${i + 1}.png`;
-            ship.onload = onLoad;
-            
-            if (i % 5 == 0) {
-                yOff += h3;
-            }
-            ship.transform = [w5 * ((i % 5) - 2), yOff, Math.PI * Math.random()];
-            
-            setRandOutline(ship);
-        });
-        
-        function onLoad(ship) {
-            let max = Math.max(ship.width, ship.height);
-            if (max > maxSize) {
-                let mul = maxSize / max;
-                ship.height *= mul;
-                ship.width *= mul;
-            }
-        }
-        
-        function setRandOutline(obj) {
-            let r = Math.floor(Math.random() * 256);
-            let g = Math.floor(Math.random() * 256);
-            let b = Math.floor(Math.random() * 256);
-            
-            obj.outline.color = `rgb(${r}, ${g}, ${b})`;
-        }
-        
-        this._stations = this._dms.getObjectsByName('station');
-        
-        const w3 = this._frame.width / 3;
-        
-        this._stations.forEach((s, i) => {
-            s.src = `./img/Stations/SS1_tier${i + 1}.png`;
-            s.transform = [this._frame.width + (i - 1) * w3, 0, Math.PI * Math.random()];
-            
-            setRandOutline(s);
-        });
-        
         this._rays = [];
         this._p1 = null;
-
-        this._lookAtPoint = Vec2.up.mul(yOff * 1.5);
     }
     
     onKeyDown(keys) {
@@ -209,9 +161,11 @@ export class Main extends FrameRenderableComponent {
     checkRays(rays) {
         for (let i = 0; i < rays.length; i++) {
             for (let j = i + 1; j < rays.length; j++) {
-                if (rays[i].ray.getCollidePoint(rays[j].ray)) {
+                let p = rays[i].ray.getCollidePoint(rays[j].ray);
+                if (p) {
                     rays[i].isCollide = true;
                     rays[j].isCollide = true;
+                    this._dms.drawPoint(p, 'lightBlue', 5);
                 }
             }
         }

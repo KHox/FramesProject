@@ -16,7 +16,7 @@ export class Transform {
     }
 
     get rotationMatrix() {
-        return Transform.getRotationMatrix(this._angle);
+        return this._rm;
     }
 
     get rotation() {
@@ -25,6 +25,7 @@ export class Transform {
 
     set rotation(v) {
         this._angle = v;
+        this._rm = Transform.getRotationMatrix(v);
     }
 
     set(x, y, rotation) {

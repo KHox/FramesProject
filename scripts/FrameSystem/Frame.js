@@ -90,9 +90,17 @@ export class Frame extends SwitchableElement {
                 isUp: false
             },
             move: {
-                x: 0,
-                y: 0,
+                x: null,
+                y: null,
+                dx: 0,
+                dy: 0,
                 isMove: false
+            },
+            click: {
+                x: null,
+                y: null,
+                buttons: 0,
+                isClick: false
             }
         };
 
@@ -182,7 +190,7 @@ export class Frame extends SwitchableElement {
 
     _addComponents(components) {
         if (components instanceof Array) {
-            components = components.filter(comp => comp instanceof FrameComponent);
+            components = components.filter(comp => comp instanceof FrameComponent && !this._allComponents.includes(comp));
             components.forEach(c => {
                 this._fc.append(c);
                 c.init(this);
@@ -214,7 +222,15 @@ export class Frame extends SwitchableElement {
                         c.onOpen();
                     }
                 });
+
+                this._allComponents.forEach(c => {
+                    if (!components.includes(c)) {
+                        c.onAddComponents(components);
+                    }
+                })
             }
+
+
 
             this._onComponents.sort(this._compSort);
             this._renderableComp.sort(this._rendCompSort);
@@ -373,8 +389,8 @@ export class Frame extends SwitchableElement {
             });
 
             this._mouse.move = {
-                x: 0,
-                y: 0,
+                x: null,
+                y: null,
                 dx: 0,
                 dy: 0,
                 buttons: 0,
@@ -392,6 +408,19 @@ export class Frame extends SwitchableElement {
                 y: null,
                 buttons: 0,
                 isUp: false
+            };
+        }
+
+        if (this._mouse.click.isClick) {
+            this._onComponents.forEach(c => {
+                c.onMouseClick(this._mouse.click);
+            });
+
+            this._mouse.click = {
+                x: null,
+                y: null,
+                buttons: 0,
+                isClick: false
             };
         }
 
@@ -499,6 +528,14 @@ export class Frame extends SwitchableElement {
         upData.buttons |= buttons;
     }
 
+    click(x, y, buttons) {
+        const cD = this._mouse.click;
+        cD.isClick = true;
+        cD.x = x;
+        cD.y = y;
+        cD.buttons = buttons;
+    }
+
     async toggleFullscreen() {
         if (this._isFullscreened) {
             return this.fullsceenOff();
@@ -575,6 +612,11 @@ export class Frame extends SwitchableElement {
                 x: 0,
                 y: 0,
                 isMove: false
+            },
+            click: {
+                x: 0,
+                y: 0,
+                isClick: false
             }
         };
     }

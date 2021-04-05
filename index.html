@@ -33,36 +33,22 @@
     <div id="container">
         <frame-element>
             <drawing-map-system>
-                <object-2d name="ship"></object-2d>
-                <object-2d name="ship"></object-2d>
-                <object-2d name="ship"></object-2d>
-                <object-2d name="ship"></object-2d>
-                <object-2d name="ship"></object-2d>
-                <object-2d name="ship"></object-2d>
-                <object-2d name="ship"></object-2d>
-                <object-2d name="ship"></object-2d>
-                <object-2d name="ship"></object-2d>
-                <object-2d name="ship"></object-2d>
-                <object-2d name="ship"></object-2d>
-                <object-2d name="ship"></object-2d>
-                <object-2d name="ship"></object-2d>
-                <object-2d name="ship"></object-2d>
-                <object-2d name="ship"></object-2d>
-                <object-2d name="station"></object-2d>
-                <object-2d name="station"></object-2d>
-                <object-2d name="station"></object-2d>
             </drawing-map-system>
             <main-script></main-script>
             <fps-ups-system></fps-ups-system>
             <help-info></help-info>
+            <driving-by-screen></driving-by-screen>
+            <loading-ships></loading-ships>
         </frame-element>
     </div>
     <script src="scripts/FrameSystem/index.js" type="module"></script>
     <script src="scripts/Extended Frames/WindowsFrame.js" type="module"></script>
     <script src="scripts/components/DrawingMapSystem/DrawingMapSystem.js" type="module"></script>
-    <script src="scripts/components/my-component.js" type="module"></script>
-    <script src="scripts/components/fps-ups-system.js" type="module"></script>
-    <script src="scripts/components/help-info.js" type="module"></script>
+    <script src="scripts/components/MyComponent.js" type="module"></script>
+    <script src="scripts/components/FpsUpsSystem.js" type="module"></script>
+    <script src="scripts/components/HelpInfo.js" type="module"></script>
+    <script src="scripts/components/DrivingByScreen.js" type="module"></script>
+    <script src="scripts/components/Debug/LoadingShips.js" type="module"></script>
     <script type="module">
         addEventListener('load', () => {
             Array.from(document.querySelector('#container').children).forEach(frame => frame.open());

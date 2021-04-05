@@ -8,7 +8,21 @@ export class DrawingMapSystem extends FrameRenderableComponent {
         this._dmsCtx = this._dmsCanvas.getContext('2d');
 
         this._cameraTransform = new Transform();
-        this._camRotMat = null;
+        
+        /**
+         * @type {Array<Object2D>}
+         */
+        this._objects = [];
+
+        this._forLiveMap = new Map();
+        
+        this.addEventListener('changeName', e => {
+            if (e.target instanceof Object2D) {
+                if (this._forLiveMap.has(e.target.name)) {
+                    this._forLiveMap.get(e.target.name).push(e.target);
+                }
+            }
+        });
     }
 
     get cameraTransform() {
@@ -17,15 +31,11 @@ export class DrawingMapSystem extends FrameRenderableComponent {
     
     onOpen() {
         this._ctx = this._frame.ctx;
-        /**
-         * @type {Array<Object2D>}
-         */
-        this._objects = Array.from(this.children).filter(c => c instanceof Object2D);
+        this._objects.push(...Array.from(this.children).filter(c => c instanceof Object2D));
         this._center = new Vec2(this._frame.centerX, this._frame.centerY);
     }
 
     postRender() {
-        this._camRotMat = this._cameraTransform.rotationMatrix;
         this._objects.forEach(o2d => this.drawObject2d(o2d));
     }
 
@@ -66,8 +76,8 @@ export class DrawingMapSystem extends FrameRenderableComponent {
         
         this._ctx.save();
         
-        let rotM = Transform.getRotationMatrix((o2d.transform.rotation + this._cameraTransform.rotation));
-        let pos = this._worldToCameraMatrix(o2d.transform.position);
+        let rotM = Transform.getRotationMatrix(o2d.transform.rotation + this._cameraTransform.rotation);
+        let pos = this.worldToCameraMatrix(o2d.transform.position);
 
         this._ctx.setTransform(...rotM, pos.x, pos.y);
 
@@ -80,8 +90,16 @@ export class DrawingMapSystem extends FrameRenderableComponent {
         this._ctx.restore();
     }
 
-    getObjectsByName(name) {
-        return this._objects.filter(o => o.name == name);
+    getObjectsByName(name, isLive) {
+        if (this._forLiveMap.has(name)) {
+            return this._forLiveMap.get(name);
+        } else {
+            let arr = this._objects.filter(o => o.name == name);
+            if (isLive) {
+                this._forLiveMap.set(name, arr);
+            }
+            return arr;
+        }
     }
 
     drawLine(p1, p2, color) {
@@ -94,18 +112,21 @@ export class DrawingMapSystem extends FrameRenderableComponent {
         this._ctx.stroke();
     }
 
+    drawPoint(p1, color, radius = 2) {
+        p1 = this.worldToCameraMatrix(p1);
+        this._ctx.beginPath();
+        this._ctx.fillStyle = color;
+        this._ctx.arc(p1.x, p1.y, radius, 0, 2 * Math.PI);
+        this._ctx.fill();
+    }
+
     /**
      * @param {Vec2} point
      */
     worldToCameraMatrix(point) {
-        this._camRotMat = this._cameraTransform.rotationMatrix;
-        return this._worldToCameraMatrix(point);
+        return point.minus(this._cameraTransform.position).rotateByMatrix(this._cameraTransform.rotationMatrix).plus(this._center);
     }
     
-    _worldToCameraMatrix(point) {
-        return point.minus(this._cameraTransform.position).rotateByMatrix(this._camRotMat).plus(this._center);
-    }
-
     /**
      * @param {Vec2} point
      */
@@ -115,6 +136,16 @@ export class DrawingMapSystem extends FrameRenderableComponent {
 
     onResize() {
         this._center = new Vec2(this._frame.centerX, this._frame.centerY);
+    }
+
+    addObject(o2d) {
+        if (o2d instanceof Object2D) {
+            this._objects.push(o2d);
+            this.append(o2d);
+            if (this._forLiveMap.has(o2d.name)) {
+                this._forLiveMap.get(o2d.name).push(o2d);
+            }
+        }
     }
 }
 
@@ -205,6 +236,16 @@ export class Object2D extends HTMLElement {
 
     get name() {
         return this._name;
+    }
+
+    set name(n) {
+        if (this._name !== n) {
+            this._name = n;
+            this.dispatchEvent(new CustomEvent('changeName', {
+                bubbles: true,
+                cancelable: true
+            }));
+        }
     }
 
     static get observedAttributes() {

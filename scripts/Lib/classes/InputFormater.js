@@ -5,6 +5,14 @@ export class InputFormater {
         this.clear();
     }
 
+    preset(forw, back, left, right, callback) {
+        this._fb = forw;
+        this._bb = back;
+        this._lb = left;
+        this._rb = right;
+        this._callback = callback;
+    }
+
     down(f, b, l, r) {
         if (f) {
             this._f = 1;
@@ -37,6 +45,20 @@ export class InputFormater {
         }
 
         return !!(f || b || l || r);
+    }
+
+    handleDown(e) {
+        if (this.down(e[this._fb], e[this._bb], e[this._lb], e[this._rb]) && this._callback) {
+            this._callback(this.getDirection());
+        }
+        return this;
+    }
+
+    handleUp(e) {
+        if (this.up(e[this._fb], e[this._bb], e[this._lb], e[this._rb]) && this._callback) {
+            this._callback(this.getDirection());
+        }
+        return this;
     }
 
     clear() {

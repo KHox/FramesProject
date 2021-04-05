@@ -51,6 +51,6 @@ export class Ray {
             return null;
         }
 
-        return true;
+        return this._o.plus(this._d.mul(z1 / (z1 - z2)));
     }
 }
