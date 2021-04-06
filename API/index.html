@@ -88,7 +88,6 @@
                     while (apiList.contains(folder)) {
                         folder.querySelector('.folder-info').classList.remove('closed');
                         folder = folder.parentElement.closest('li.folder');
-                        break;
                     }
                     document.querySelector('.content').innerHTML = apiHelper.getHTML(page, data);
                 }

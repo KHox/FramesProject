@@ -9,7 +9,7 @@ export class DrivingByScreen extends FrameComponent {
         this._direction = Vec2.identy;
 
         this._inputFormater = new InputFormater();
-        this._inputFormater.preset('KeyW', 'KeyS', 'KeyA', 'KeyD');
+        this._inputFormater.setCallback(this._moveChange);
 
         this._isDriving = false;
     }

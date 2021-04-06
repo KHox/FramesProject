@@ -536,7 +536,7 @@ export const INFO = {
                                     }
                                 },
                                 returns: 'boolean',
-                                description: `Для базовой работы рекомендуется использовать <span clas="word">handleDown</span метод<br>
+                                description: `Для базовой работы рекомендуется использовать <span class="word">handleDown</span> метод<br>
                                 Получает логические значения выбранных направлений и корректирует текущее направление по ним<br>
                                 Если направление было изменено возвращает true, иначе false`
                             },
@@ -560,7 +560,7 @@ export const INFO = {
                                     }
                                 },
                                 returns: 'boolean',
-                                description: `Для базовой работы рекомендуется использовать <span clas="word">handleUp</span метод<br>
+                                description: `Для базовой работы рекомендуется использовать <span class="word">handleUp</span> метод<br>
                                 Получает логические значения выбранных направлений и корректирует текущее направление по ним<br>
                                 Если направление было изменено возвращает true, иначе false`
                             },
