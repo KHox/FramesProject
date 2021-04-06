@@ -3,6 +3,10 @@ import { Vec2 } from "./Vec2.js";
 export class InputFormater {
     constructor() {
         this.clear();
+        this._fb = 'KeyW';
+        this._bb = 'KeyS';
+        this._lb = 'KeyA';
+        this._rb = 'KeyD';
     }
 
     preset(forw, back, left, right, callback) {
@@ -10,6 +14,10 @@ export class InputFormater {
         this._bb = back;
         this._lb = left;
         this._rb = right;
+        this._callback = callback;
+    }
+
+    setCallback(callback) {
         this._callback = callback;
     }
 

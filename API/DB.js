@@ -453,15 +453,432 @@ export const INFO = {
                 type: 'folder',
                 items: {
                     CoordData: {},
-                    InputFormater: {},
+                    InputFormater: {
+                        addClassName: true,
+                        import: `./Lib/index.js`,
+                        description: `Класс позволяющий считывать нажатия пользователя и превращать их в вектор направления движения`,
+                        methods: {
+                            preset: {
+                                args: {
+                                    forwardKey: {
+                                        type: 'string',
+                                        description: `Название поля, отвечающее за передвижение вперёд`
+                                    },
+                                    backwardKey: {
+                                        type: 'string',
+                                        description: `Название поля, отвечающее за передвижение назад`
+                                    },
+                                    leftKey: {
+                                        type: 'string',
+                                        description: `Название поля, отвечающее за передвижение влево`
+                                    },
+                                    rightKey: {
+                                        type: 'string',
+                                        description: `Название поля, отвечающее за передвижение вправо`
+                                    },
+                                    callback: {
+                                        type: 'Function',
+                                        description: `Функция обратного вызова, выполняющаяся в момент изменения направления<br>
+                                        Функция имеет единственный аргумент типа <a data-key="Vec2">Vec2</a> являющийся изменнёным направлением`
+                                    }
+                                },
+                                description: `Устанавливает названия клавиш для считывания направления<br>
+                                По-умолчанию направление считывается с клавиш WASD`
+                            },
+                            setCallback: {
+                                args: {
+                                    callback: {
+                                        type: 'Function',
+                                        description: 'Функция обратного вызова, с единственным аргументом - изменённым направлением'
+                                    }
+                                },
+                                description: `Устанавливает функцию обратного вызова для методов <span class="word">handle*</span>`
+                            },
+                            handleDown: {
+                                args: {
+                                    keys: {
+                                        type: `object`,
+                                        description: 'Объект нажатых клавиш'
+                                    }
+                                },
+                                returns: `InputFormater`,
+                                description: `Вызывается с объектом нажатых клавиш и проверяет на изменение<br>
+                                В случае изменения направления, будет вызвана функция обратного вызова с переданным в неё направлением`
+                            },
+                            handleUp: {
+                                args: {
+                                    keys: {
+                                        type: `object`,
+                                        description: 'Объект отпущенных клавиш'
+                                    }
+                                },
+                                returns: `InputFormater`,
+                                description: `Вызывается с объектом отжатых клавиш и проверяет на изменение<br>
+                                В случае изменения направления, будет вызвана функция обратного вызова с переданным в неё направлением`
+                            },
+                            down: {
+                                args: {
+                                    f: {
+                                        type: 'boolean',
+                                        description: 'Направление вперёд'
+                                    },
+                                    b: {
+                                        type: 'boolean',
+                                        description: 'Направление назад'
+                                    },
+                                    l: {
+                                        type: 'boolean',
+                                        description: 'Направление влево'
+                                    },
+                                    r: {
+                                        type: 'boolean',
+                                        description: 'Направление вправо'
+                                    }
+                                },
+                                returns: 'boolean',
+                                description: `Для базовой работы рекомендуется использовать <span clas="word">handleDown</span метод<br>
+                                Получает логические значения выбранных направлений и корректирует текущее направление по ним<br>
+                                Если направление было изменено возвращает true, иначе false`
+                            },
+                            up: {
+                                args: {
+                                    f: {
+                                        type: 'boolean',
+                                        description: 'Направление вперёд'
+                                    },
+                                    b: {
+                                        type: 'boolean',
+                                        description: 'Направление назад'
+                                    },
+                                    l: {
+                                        type: 'boolean',
+                                        description: 'Направление влево'
+                                    },
+                                    r: {
+                                        type: 'boolean',
+                                        description: 'Направление вправо'
+                                    }
+                                },
+                                returns: 'boolean',
+                                description: `Для базовой работы рекомендуется использовать <span clas="word">handleUp</span метод<br>
+                                Получает логические значения выбранных направлений и корректирует текущее направление по ним<br>
+                                Если направление было изменено возвращает true, иначе false`
+                            },
+                            getDirection: {
+                                returns: `<a data-key="Vec2">Vec2</a>`,
+                                description: `Возвращает нормализованный вектор направления`
+                            },
+                            clear: {
+                                description: `Очищает направление`
+                            }
+                        }
+                    },
                     TasksManager: {},
-                    Transform: {},
-                    Vec2: {}
+                    Transform: {
+                        addClassName: true,
+                        import: './Lib/index.js',
+                        methods: {
+                            set: {
+                                args: {
+                                    x: {
+                                        type: 'number',
+                                        description: `Координата X`
+                                    },
+                                    y: {
+                                        type: 'number',
+                                        description: `Координата Y`
+                                    },
+                                    rotation: {
+                                        type: 'number',
+                                        description: `Угол поворота`
+                                    }
+                                },
+                                description: `Устанавливает состояние Transform'а`
+                            },
+                            lookAt: {
+                                args: {
+                                    point: {
+                                        type: '<a data-key="Vec2">Vec2</a>',
+                                        description: `Точка в пространстве`
+                                    }
+                                },
+                                description: `Разварачивает объект в сторону точки`
+                            },
+                            valueOf: {
+                                returns: `Array(6)`,
+                                description: `Возвращает матрицу трансформа (без последней строки)`
+                            },
+                            getRotationMatrix: {
+                                isStatic: true,
+                                args: {
+                                    angle: {
+                                        type: 'number',
+                                        description: 'Угол поворота'
+                                    }
+                                },
+                                returns: `Array(4)`,
+                                description: `Возвращает матрицу поворота по полученному углу`
+                            },
+                            reverseMatrix: {
+                                isStatic: true,
+                                args: {
+                                    m: {
+                                        type: 'Array(4)',
+                                        description: `Матрица поворота`
+                                    }
+                                },
+                                description: `Разворачивает матрицу`
+                            }
+                        },
+                        properties: {
+                            public: {
+                                position: {
+                                    lines: {
+                                        type: `<a data-key="CoordsData">CoordsData</a>`
+                                    },
+                                    description: `Координатный вектор расположеия объекта в пространстве`
+                                },
+                                rotation: {
+                                    lines: {
+                                        type: `number`
+                                    },
+                                    description: `Угол поворота объекта`
+                                },
+                                rotationMatrix: {
+                                    lines: {
+                                        readonly: '',
+                                        type: 'Array(4)'
+                                    },
+                                    description: `Матрица поворота`
+                                }
+                            }
+                        }
+                    },
+                    Vec2: {
+                        addClassName: true,
+                        import: `./Lib/index.js`,
+                        methods: {
+                            constructor: {
+                                returns: `<a data-key="Vec2">Vec2</a>`,
+                                args: {
+                                    x: {
+                                        type: 'number',
+                                        description: 'Координата X<br>По-умолчанию 0'
+                                    },
+                                    y: {
+                                        type: 'number',
+                                        description: 'Координата Y<br>По-умолчанию 0'
+                                    }
+                                }
+                            },
+                            rotate: {
+                                returns: `<a data-key="Vec2">Vec2</a>`,
+                                args: {
+                                    angle: {
+                                        type: 'number',
+                                        description: 'Угол поворота'
+                                    }
+                                },
+                                description: `Поворачивает вектор на <span class="word">angle</span> радиан относительно текущего поворота`
+                            },
+                            plus: {
+                                returns: `<a data-key="Vec2">Vec2</a>`,
+                                args: {
+                                    vector: {
+                                        type: '<a data-key="Vec2">Vec2</a>',
+                                        description: 'Прибавляемый вектор'
+                                    }
+                                },
+                                description: `Складывает текущей вектор с переданным и возвращает результат`
+                            },
+                            minus: {
+                                returns: `<a data-key="Vec2">Vec2</a>`,
+                                args: {
+                                    vector: {
+                                        type: '<a data-key="Vec2">Vec2</a>',
+                                        description: 'Вычитаемый вектор'
+                                    }
+                                },
+                                description: `Вычитает из текущего вектора переданный и возвращает результат`
+                            },
+                            dot: {
+                                returns: 'number',
+                                args: {
+                                    vector: {
+                                        type: '<a data-key="Vec2">Vec2</a>',
+                                    }
+                                },
+                                description: 'Возвращает скалярное произведение векторов'
+                            },
+                            getCosBetween: {
+                                returns: 'number',
+                                args: {
+                                    vector: {
+                                        type: '<a data-key="Vec2">Vec2</a>',
+                                    }
+                                },
+                                description: 'Возвращает значение косинуса угла между векторами'
+                            },
+                            angle: {
+                                returns: 'number',
+                                args: {
+                                    vector: {
+                                        type: '<a data-key="Vec2">Vec2</a>',
+                                    }
+                                },
+                                description: 'Возвращает угол (в радианах) между векторами'
+                            },
+                            mul: {
+                                returns: '<a data-key="Vec2">Vec2</a>',
+                                args: {
+                                    vector: {
+                                        type: 'number',
+                                    }
+                                },
+                                description: 'Умножает вектор на число'
+                            },
+                            normalize: {
+                                returns: '<a data-key="Vec2">Vec2</a>',
+                                description: 'Возвращает нормализованный вектор'
+                            },
+                            cross: {
+                                returns: 'number',
+                                args: {
+                                    vector: {
+                                        type: '<a data-key="Vec2">Vec2</a>',
+                                    }
+                                },
+                                description: 'Возвращает координату Z вектора, получающегося при произведении векторов'
+                            },
+                            getAngle: {
+                                returns: 'number',
+                                description: `Возвращает угол поворота вектора`
+                            },
+                            valueOf: {
+                                returns: 'Array(2)',
+                                description: 'Возвращает массив координат'
+                            },
+                            rotateByMatrix: {
+                                returns: '<a data-key="Vec2">Vec2</a>',
+                                args: {
+                                    rotMat: {
+                                        type: `Array(4)`,
+                                        description: 'Матрица поворота'
+                                    }
+                                },
+                                description: `Возвращаяет вектор повёрнытый при помощи матрицы`
+                            }
+                        },
+                        properties: {
+                            public: {
+                                x: {
+                                    lines: {
+                                        readonly: '',
+                                        type: 'number'
+                                    },
+                                    description: `Координата X вектора`
+                                },
+                                y: {
+                                    lines: {
+                                        readonly: '',
+                                        type: 'number'
+                                    },
+                                    description: `Координата Y вектора`
+                                },
+                                magnitude: {
+                                    lines: {
+                                        readonly: '',
+                                        type: 'number'
+                                    },
+                                    description: `Длина вектора`
+                                },
+
+                                identy: {
+                                    isStatic: true,
+                                    lines: {
+                                        readonly: '',
+                                        type: `<a data-key="Vec2">Vec2</a>`
+                                    },
+                                    description: `Нулевой вектор`
+                                },
+                                up: {
+                                    isStatic: true,
+                                    lines: {
+                                        readonly: '',
+                                        type: `<a data-key="Vec2">Vec2</a>`
+                                    },
+                                    description: `Нормализованный вектор направленный вверх`
+                                },
+                                left: {
+                                    isStatic: true,
+                                    lines: {
+                                        readonly: '',
+                                        type: `<a data-key="Vec2">Vec2</a>`
+                                    },
+                                    description: `Нормализованный вектор направленный влево`
+                                },
+                                right: {
+                                    isStatic: true,
+                                    lines: {
+                                        readonly: '',
+                                        type: `<a data-key="Vec2">Vec2</a>`
+                                    },
+                                    description: `Нормализованный вектор направленный вправо`
+                                },
+                                down: {
+                                    isStatic: true,
+                                    lines: {
+                                        readonly: '',
+                                        type: `<a data-key="Vec2">Vec2</a>`
+                                    },
+                                    description: `Нормализованный вектор направленный вниз`
+                                },
+                            }
+                        },
+                        description: `Класс вектора`
+                    }
                 }
             },
             Functions: {},
             Objects: {},
-            Math: {},
+            Math: {
+                methods: {
+                    isNumeric: {
+                        returns: 'boolean',
+                        args: {
+                            n: {
+                                description: 'Любое значение'
+                            }
+                        },
+                        description: 'Проверяет, является ли переданное значение числом'
+                    },
+                    randFloat: {
+                        returns: 'number',
+                        args: {
+                            n: {
+                                type: 'number',
+                                description: 'Верхняя граница'
+                            }
+                        },
+                        description: 'Возвращает случайное рациональное число в диапазоне [0, n)'
+                    },
+                    randInt: {
+                        returns: 'number',
+                        args: {
+                            n: {
+                                type: 'number',
+                                description: 'Верхняя граница'
+                            }
+                        },
+                        description: 'Возвращает случайное целое число в диапазоне [0, n)'
+                    },
+                    getRandRGB: {
+                        returns: 'string',
+                        description: 'Возвращает случайный цвет в виде строки типа <span class="word">rgb(*, *, *)</span>'
+                    }
+                },
+                description: 'Математические и не очень <span class="word">функции</span>'
+            },
             Arrays: {}
         }
     },

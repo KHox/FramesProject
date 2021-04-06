@@ -51,6 +51,10 @@ export class Ray {
             return null;
         }
 
+        if (z1 == 0 && z2 == 0) {
+            return null;
+        }
+
         return this._o.plus(this._d.mul(z1 / (z1 - z2)));
     }
 }

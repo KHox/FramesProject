@@ -62,5 +62,3 @@ export class Transform {
         return [m[0], m[2], m[1], m[3]];
     }
 }
-
-window.Transform = Transform;

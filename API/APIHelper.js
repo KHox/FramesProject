@@ -114,6 +114,9 @@ export class APIHelper {
     _getMethod(method, data, addIfNeed, name) {
         let result = `<div class="method-container">\n`;
         result += `<h3 class="method-name">`;
+        if (data.isStatic) {
+            result += '<span class="struct-word">static</span> ';
+        }
         if (data.isAsync) {
             result += '<span class="struct-word">async</span> ';
         }
@@ -224,6 +227,9 @@ export class APIHelper {
     _getProp(name, data, addIfNeed, className) {
         let result = `<div class="property-container">\n`;
         result += `<h3 class="property-name">`;
+        if (data.isStatic) {
+            result += '<span class="struct-word">static</span> ';
+        }
         if (addIfNeed) {
             result += className + '.';
         }
