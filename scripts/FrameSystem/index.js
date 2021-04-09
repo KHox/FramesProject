@@ -138,14 +138,14 @@ document.addEventListener('open', e => {
 });
 
 document.addEventListener('switchOff', e => {
-    const t = e.target;
+    const t = e.detail.target;
     if (t instanceof Frame && openedFrames.includes(t)) {
         removeActiveFrame(t);
     }
 });
 
 document.addEventListener('switchOn', e => {
-    const t = e.target;
+    const t = e.detail.target;
     if (t instanceof Frame && openedFrames.includes(t)) {
         addActiveFrame(t);
     }
@@ -194,12 +194,13 @@ document.addEventListener('mouseup', e => {
     handleEvent(e, 'mouseUp');
 });
 
+//Need to delete this func and use currentFocused.handleMouse
 function handleEvent(e, name) {
     if (currentFocused) {
-        const {left, top} = currentFocused.getBoundingClientRect();
-        currentFocused[name](
-            e.clientX - left,
-            e.clientY - top,
+        currentFocused.handleMouse(
+            name,
+            e.clientX,
+            e.clientY,
             e.buttons,
             e
         );
@@ -207,6 +208,7 @@ function handleEvent(e, name) {
 }
 
 document.addEventListener('click', e => {
+    handleEvent(e, 'click');
 });
 
 
@@ -221,5 +223,41 @@ document.addEventListener('fullscreenchange', async e => {
             await currentFocused.fullsceenOff();
         }
         noFullscreened = true;
+    }
+});
+
+document.addEventListener('touchstart', e => {
+    if (currentFocused) {
+        currentFocused.handleTouches(
+            Array.from(e.changedTouches),
+            'start'
+        );
+    }
+});
+
+document.addEventListener('touchmove', e => {
+    if (currentFocused) {
+        currentFocused.handleTouches(
+            Array.from(e.changedTouches),
+            'move'
+        );
+    }
+});
+
+document.addEventListener('touchend', e => {
+    if (currentFocused) {
+        currentFocused.handleTouches(
+            Array.from(e.changedTouches),
+            'end'
+        );
+    }
+});
+
+document.addEventListener('touchcancel', e => {
+    if (currentFocused) {
+        currentFocused.handleTouches(
+            Array.from(e.changedTouches),
+            'cancel'
+        );
     }
 });

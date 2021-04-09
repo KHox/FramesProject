@@ -1,157 +1,7 @@
-import { FrameRenderableComponent } from "../../FrameSystem/index.js";
+import { FrameComponent, FrameRenderableComponent } from "../../FrameSystem/index.js";
 import { Collider, isNumeric, Transform, Vec2 } from "../../Lib/index.js";
 
-export class DrawingMapSystem extends FrameRenderableComponent {
-    constructor() {
-        super();
-        this._dmsCanvas = document.createElement('canvas');
-        this._dmsCtx = this._dmsCanvas.getContext('2d');
-
-        this._cameraTransform = new Transform();
-        
-        /**
-         * @type {Array<Object2D>}
-         */
-        this._objects = [];
-
-        this._forLiveMap = new Map();
-        
-        this.addEventListener('changeName', e => {
-            if (e.target instanceof Object2D) {
-                if (this._forLiveMap.has(e.target.name)) {
-                    this._forLiveMap.get(e.target.name).push(e.target);
-                }
-            }
-        });
-    }
-
-    get cameraTransform() {
-        return this._cameraTransform;
-    }
-    
-    onOpen() {
-        this._ctx = this._frame.ctx;
-        this._objects.push(...Array.from(this.children).filter(c => c instanceof Object2D));
-        this._center = new Vec2(this._frame.centerX, this._frame.centerY);
-    }
-
-    postRender() {
-        this._objects.forEach(o2d => this.drawObject2d(o2d));
-    }
-
-    /**
-     * @param {Object2D} o2d 
-     */
-    drawObject2d(o2d) {
-        let w, h, image;
-        
-        if (o2d.outline.color) {
-            let offW = o2d.outline.width;
-            let offH = o2d.outline.height;
-
-            w = o2d.width + offW * 2;
-            h = o2d.height + offH * 2;
-
-            this._dmsCanvas.width = w;
-            this._dmsCanvas.height = h;
-
-            this._dmsCtx.fillStyle = o2d.outline.color;
-            this._dmsCtx.fillRect(0, 0, w, h);
-
-            this._dmsCtx.globalCompositeOperation = 'destination-in';
-
-            this._dmsCtx.drawImage(o2d.image, 0, 0, w, h);
-
-            this._dmsCtx.globalCompositeOperation = 'source-over';
-
-            this._dmsCtx.drawImage(o2d.image, offW, offH, o2d.width, o2d.height);
-
-            image = this._dmsCanvas;
-        } else {
-            w = o2d.width;
-            h = o2d.height;
-            image = o2d.image;
-        }
-
-        
-        this._ctx.save();
-        
-        let rotM = Transform.getRotationMatrix(o2d.transform.rotation + this._cameraTransform.rotation);
-        let pos = this.worldToCameraMatrix(o2d.transform.position);
-
-        this._ctx.setTransform(...rotM, pos.x, pos.y);
-
-        //this._ctx.translate(x, y);
-        //this._ctx.rotate(o2d.transform.rotation - this._cameraTransform.rotation);
-        this._ctx.translate(-w / 2, -h / 2);
-
-        this._ctx.drawImage(image, 0, 0, w, h);
-
-        this._ctx.restore();
-    }
-
-    getObjectsByName(name, isLive) {
-        if (this._forLiveMap.has(name)) {
-            return this._forLiveMap.get(name);
-        } else {
-            let arr = this._objects.filter(o => o.name == name);
-            if (isLive) {
-                this._forLiveMap.set(name, arr);
-            }
-            return arr;
-        }
-    }
-
-    drawLine(p1, p2, color) {
-        p1 = this.worldToCameraMatrix(p1);
-        p2 = this.worldToCameraMatrix(p2);
-        this._ctx.beginPath();
-        this._ctx.strokeStyle = color;
-        this._ctx.moveTo(p1.x, p1.y);
-        this._ctx.lineTo(p2.x, p2.y);
-        this._ctx.stroke();
-    }
-
-    drawPoint(p1, color, radius = 2) {
-        p1 = this.worldToCameraMatrix(p1);
-        this._ctx.beginPath();
-        this._ctx.fillStyle = color;
-        this._ctx.arc(p1.x, p1.y, radius, 0, 2 * Math.PI);
-        this._ctx.fill();
-    }
-
-    /**
-     * @param {Vec2} point
-     */
-    worldToCameraMatrix(point) {
-        return point.minus(this._cameraTransform.position).rotateByMatrix(this._cameraTransform.rotationMatrix).plus(this._center);
-    }
-    
-    /**
-     * @param {Vec2} point
-     */
-    screenToWorldMatrix(point) {
-        return this._cameraTransform.position.plus(point.minus(this._center).rotateByMatrix(Transform.reverseMatrix(this._cameraTransform.rotationMatrix)));
-    }
-
-    onResize() {
-        this._center = new Vec2(this._frame.centerX, this._frame.centerY);
-    }
-
-    addObject(o2d) {
-        if (o2d instanceof Object2D) {
-            this._objects.push(o2d);
-            this.append(o2d);
-            if (this._forLiveMap.has(o2d.name)) {
-                this._forLiveMap.get(o2d.name).push(o2d);
-            }
-        }
-    }
-}
-
-customElements.define('drawing-map-system', DrawingMapSystem);
-
-export class Object2D extends HTMLElement {
+export class Object2D extends FrameComponent {
     constructor(src) {
         super();
         this._name = 'Unknown object';
@@ -249,10 +99,11 @@ export class Object2D extends HTMLElement {
     }
 
     static get observedAttributes() {
-        return ['src', 'x', 'y', 'rot', 'width', 'height', 'outline-color', 'outline-width', 'outline-height', 'name'];
+        return ['src', 'x', 'y', 'rot', 'width', 'height', 'outline-color', 'outline-width', 'outline-height', 'name'].concat(super.observedAttributes);
     }
     
-    attributeChangedCallback(name, _, newValue) {
+    attributeChangedCallback(name, oldValue, newValue) {
+        super.attributeChangedCallback(name, oldValue, newValue);
         switch (name) {
             case 'src':
                 this._image.src = newValue;
@@ -289,3 +140,163 @@ export class Object2D extends HTMLElement {
 }
 
 customElements.define('object-2d', Object2D);
+
+export class DrawingMapSystem extends FrameRenderableComponent {
+    constructor() {
+        super();
+        this._dmsCanvas = document.createElement('canvas');
+        this._dmsCtx = this._dmsCanvas.getContext('2d');
+
+        this._cameraTransform = new Transform();
+        
+        /**
+         * @type {Array<Object2D>}
+         */
+        this._objects = [];
+
+        this._forLiveMap = new Map();
+        
+        this.addEventListener('changeName', e => {
+            if (e.target instanceof Object2D) {
+                if (this._forLiveMap.has(e.target.name)) {
+                    this._forLiveMap.get(e.target.name).push(e.target);
+                }
+            }
+        });
+/*
+        this.addEventListener('switchOn', e => {
+            if (e.target instanceof Object2D && this._allComponents.includes(e.target) && !this._objects.includes(e.target)) {
+                this._objects.push(e.target);
+            }
+        });*/
+    }
+
+    get cameraTransform() {
+        return this._cameraTransform;
+    }
+    
+    onOpen() {
+        this._ctx = this._frame.ctx;
+        this._objects.push(...Array.from(this.children).filter(c => c instanceof Object2D));
+        this._center = new Vec2(this._frame.centerX, this._frame.centerY);
+    }
+
+    postRender() {
+        this._objects.forEach(o2d => this.drawObject2d(o2d));
+    }
+
+    /**
+     * @param {Object2D} o2d 
+     */
+    drawObject2d(o2d) {
+        let w, h, image;
+        
+        if (o2d.outline.color) {
+            let offW = o2d.outline.width;
+            let offH = o2d.outline.height;
+
+            w = o2d.width + offW * 2;
+            h = o2d.height + offH * 2;
+
+            this._dmsCanvas.width = w;
+            this._dmsCanvas.height = h;
+
+            this._dmsCtx.fillStyle = o2d.outline.color;
+            this._dmsCtx.fillRect(0, 0, w, h);
+
+            this._dmsCtx.globalCompositeOperation = 'destination-in';
+
+            this._dmsCtx.drawImage(o2d.image, 0, 0, w, h);
+
+            this._dmsCtx.globalCompositeOperation = 'source-over';
+
+            this._dmsCtx.drawImage(o2d.image, offW, offH, o2d.width, o2d.height);
+
+            image = this._dmsCanvas;
+        } else {
+            w = o2d.width;
+            h = o2d.height;
+            image = o2d.image;
+        }
+
+        
+        this._ctx.save();
+        
+        let rotM = Transform.getRotationMatrix(o2d.transform.rotation + this._cameraTransform.rotation);
+        let pos = this.worldToCameraMatrix(o2d.transform.position);
+
+        this._ctx.setTransform(...rotM, pos.x, pos.y);
+
+        //this._ctx.translate(x, y);
+        //this._ctx.rotate(o2d.transform.rotation - this._cameraTransform.rotation);
+        this._ctx.translate(-w / 2, -h / 2);
+
+        this._ctx.drawImage(image, 0, 0, w, h);
+
+        this._ctx.restore();
+    }
+    
+    getObjectsByName(name, isLive) {
+        if (this._forLiveMap.has(name)) {
+            return this._forLiveMap.get(name);
+        } else {
+            let arr = this._objects.filter(o => o.name == name);
+            if (isLive) {
+                this._forLiveMap.set(name, arr);
+            }
+            return arr;
+        }
+    }
+
+    drawLine(p1, p2, color) {
+        p1 = this.worldToCameraMatrix(p1);
+        p2 = this.worldToCameraMatrix(p2);
+        this._ctx.beginPath();
+        this._ctx.strokeStyle = color;
+        this._ctx.moveTo(p1.x, p1.y);
+        this._ctx.lineTo(p2.x, p2.y);
+        this._ctx.stroke();
+    }
+
+    drawPoint(p1, color, radius = 2) {
+        p1 = this.worldToCameraMatrix(p1);
+        this._ctx.beginPath();
+        this._ctx.fillStyle = color;
+        this._ctx.arc(p1.x, p1.y, radius, 0, 2 * Math.PI);
+        this._ctx.fill();
+    }
+
+    /**
+     * @param {Vec2} point
+     */
+    worldToCameraMatrix(point) {
+        return point.minus(this._cameraTransform.position).rotateByMatrix(this._cameraTransform.rotationMatrix).plus(this._center);
+    }
+    
+    /**
+     * @param {Vec2} point
+     */
+    screenToWorldMatrix(point) {
+        return this._cameraTransform.position.plus(point.minus(this._center).rotateByMatrix(Transform.reverseMatrix(this._cameraTransform.rotationMatrix)));
+    }
+
+    onResize() {
+        this._center = new Vec2(this._frame.centerX, this._frame.centerY);
+    }
+
+    addComponents(os2d) {
+        super.addComponents(os2d);
+
+        let filtered = os2d.filter(o2d => {
+            if (o2d instanceof Object2D) {
+                if (this._forLiveMap.has(o2d.name)) {
+                    this._forLiveMap.get(o2d.name).push(o2d);
+                }
+                return o2d.isOn;
+            }
+        });
+        this._objects = this._objects.concat(filtered);
+    }
+}
+
+customElements.define('drawing-map-system', DrawingMapSystem);

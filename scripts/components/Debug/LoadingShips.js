@@ -1,13 +1,22 @@
-import { FrameComponent } from "../../FrameSystem/index.js";
+import { FrameRenderableComponent } from "../../FrameSystem/index.js";
 import { getRandRGB } from "../../Lib/index.js";
 import { Object2D } from "../DrawingMapSystem/DrawingMapSystem.js";
+import { ShipBehavior } from "../ShipBehavior.js";
 
 const shipsCount = 15;
 const stationsCount = 3;
 
-export class LoadingShips extends FrameComponent {
+export class LoadingShips extends FrameRenderableComponent {
     onOpen() {
         this._dms = this._frame.getComponents('DrawingMapSystem')[0];
+        this._st = [];
+        this._lb = [];
+        this._bar = null;
+
+        if (this._shipsCount === undefined) {
+            this._shipsCount = shipsCount;
+        }
+            
         if (!this._dms) {
             this.switchOff();
         } else {
@@ -27,8 +36,8 @@ export class LoadingShips extends FrameComponent {
     }
 
     loadShips() {
-        this.loadElements('./img/Space ships/SpaceShip', shipsCount, 'ship');
-        this.loadElements('./img/Stations/SS1_tier', stationsCount, 'station', this._frame.width);        
+        this.loadElements('./img/Stations/SS1_tier', stationsCount, 'station', stationsCount, this._frame.width);        
+        this.loadElements('./img/Space ships/SpaceShip', this._shipsCount, 'ship', shipsCount);
     }
 
     getRowsColumns(ratio, count) {
@@ -54,39 +63,143 @@ export class LoadingShips extends FrameComponent {
         };
     }
 
-    loadElements(path, count, name, offsetX = 0, offsetY = 0) {
+    loadElements(path, count, name, divis = count, offsetX = 0, offsetY = 0) {
         let fh = this._frame.height;
         let fw = this._frame.width;
 
-        let {rows, columns} = this.getRowsColumns(fh / fw, count);
-        
+        const {rows, columns} = this.getRowsColumns(fh / fw, count);
         const hPart = fh / rows;
         const wPart = fw / columns;
         let yOff = (hPart - fh) / 2;
         let xOff = (wPart - fw) / 2;
-        
-        let maxSize = Math.min(hPart, wPart);
-        
-        let onLoad = elem => {
-            let max = Math.max(elem.width, elem.height);
-            if (max > maxSize) {
-                let mul = maxSize / max;
-                elem.width *= mul;
-                elem.height *= mul;
-            }
-            this._dms.addObject(elem);
+
+        let data = {
+            path,
+            count,
+            name,
+            divis,
+            offsetX,
+            offsetY,
+            maked: 0,
+            loaded: 0,
+            rows,
+            columns,
+            fw,
+            fh,
+            readyies: [],
+            hPart,
+            wPart,
+            yOff,
+            xOff,
+            sX: this._frame.centerX - fw / 6,
+            sY: this._frame.centerY - 25,
+            maxSize: Math.min(hPart, wPart),
+            time: performance.now()
         };
-        
-        for (let i = 0; i < count; i++) {
-            const o = new Object2D(path + `${i + 1}.png`);
-            o.name = name;
-            o.outline.color = getRandRGB();
-            o.onload = onLoad;
+
+        if (!this._bar) {
+            this._bar = data;
+        }
+
+        this._st.push(data);
+        this._lb.push(data);
+    }
+
+    tick() {
+        let data = this._st[0];
+        if (data) {
+            let onLoad = elem => {
+                data.loaded++;
+                let max = Math.max(elem.width, elem.height);
+                if (max > data.maxSize) {
+                    let mul = data.maxSize / max;
+                    elem.width *= mul;
+                    elem.height *= mul;
+                }
+                data.readyies.push(elem);
+                /*
+                if (data.loaded % 5000 == 0) {
+                    console.log(data.loaded, performance.now());
+                }
+                */
+                if (data.loaded == data.count) {
+                    this._dms.addComponents(data.readyies);
+                    console.log(performance.now());
+                    //data.readyies = [];
+                }
+            };
+
+            let delta = data.count - data.maked;
+            if (delta > 10) {
+                delta = 10;
+            } else {
+                this._st.shift();
+            }
             
-            let x = i % columns;
-            let y = (i - x) / columns;
-            
-            o.transform.position = [offsetX + xOff + x * wPart, offsetY + yOff + y * hPart];
+            for (let i = data.maked; i < data.maked + delta; i++) {
+                const o = new Object2D(data.path + `${i % data.divis + 1}.png`);
+                o.name = data.name;
+                /*
+                if (Math.random() < 0) {
+                    o.outline.color = getRandRGB();
+                }*/
+                o.onload = onLoad;
+                
+                let x = i % data.columns;
+                let y = (i - x) / data.columns;
+                
+                o.transform.position = [data.offsetX + data.xOff + x * data.wPart, data.offsetY + data.yOff + y * data.hPart];
+
+                if (data.name == 'ship') {
+                    o.addComponents([
+                        new ShipBehavior()
+                    ]);
+                }
+            }
+
+            data.maked += delta;
+        }
+    }
+
+    /**
+     * @param {CanvasRenderingContext2D} ctx
+     */
+    postRender(ctx) {
+        if (this._bar) {
+            let w3 = this._frame.width / 3;
+            let cX = this._frame.centerX;
+            let cY = this._frame.centerY;
+            let sX = cX - w3 / 2;
+            let r = this._bar.loaded / this._bar.count;
+
+            ctx.beginPath();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = 'white';
+            ctx.fillStyle = 'blue';
+
+            ctx.fillRect(sX, cY - 25, w3 * r, 50);
+            ctx.strokeRect(sX, cY - 25, w3, 50);
+
+            ctx.fillStyle = 'white';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText((r * 100).toFixed(1) + '%', cX, cY);
+
+            if (this._bar.loaded == this._bar.count) {
+                this._lb.shift();
+                this._bar = this._lb[0];
+            }
+        }
+    }
+
+    static get observedAttributes() {
+        return ['ships-count'].concat(super.observedAttributes);
+    }
+
+    attributeChangedCallback(name, oldValue, newValue) {
+        super.attributeChangedCallback(name, oldValue, newValue);
+        if (name == 'ships-count') {
+            this._shipsCount = +newValue;
         }
     }
 }

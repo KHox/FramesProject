@@ -1,12 +1,232 @@
 import { getFunctionBody, isEmpty, isNumeric, TasksManager } from "../Lib/index.js";
 import { EventableElement } from "./ComponentBase/EventableElement.js";
 import { FrameRenderableComponent } from "./ComponentBase/FrameRenderableComponent.js";
-import { SwitchableElement } from "./SwitchableElement.js";
+
+const onAddComp = Symbol("onAddComp");
+const tick = Symbol("tick");
+const onOpen = Symbol('onOpen');
+const onKeyDown = Symbol('onKeyDown');
+const onKeyUp = Symbol('onKeyUp');
+const onMouseMove = Symbol('onMouseMove');
+const onMouseDown = Symbol('onMouseDown');
+const onMouseUp = Symbol('onMouseUp');
+const onClick = Symbol('onClick');
+const onFocus = Symbol('onFocus');
+const onBlur = Symbol('onBlur');
+const onResize = Symbol('onResize');
+const onSwitchOn = Symbol('onSwitchOn');
+const onSwitchOff = Symbol('onSwitchOff');
+const onTouchStart = Symbol('onTouchStart');
+const onTouchMove = Symbol('onTouchMove');
+const onTouchEnd = Symbol('onTouchEnd');
+const onTouchCancel = Symbol('onTouchCancel');
+const onToggleScreen = Symbol('onToggleScreen');
 
 const currentFolderPath = import.meta.url.slice(0, import.meta.url.lastIndexOf('/') + 1);
 let renderId = 0;
 
-export class Frame extends SwitchableElement {
+export class FrameComponent extends EventableElement {
+    constructor() {
+        super();
+        this._tickPriority = 1;
+        /**
+         * @type {Frame}
+         */
+        this._frame = null;
+        /**
+         * @type {FrameComponent}
+         */
+        this._parent = null;
+        this._name = this.constructor.name;
+
+        /**
+         * @type {Array<FrameComponent>}
+         */
+        this._allComponents = [];
+    }
+
+    get tickPriority() {
+        return this._tickPriority;
+    }
+
+    get name() {
+        return this._name;
+    }
+    
+    init(frame, parent) {
+        this._frame = frame;
+        this._parent = parent;
+        this._allComponents.forEach(c => {
+            c.init(frame, this);
+        });
+    }
+
+    [tick]() {
+        this.tick();
+        this._allComponents.forEach(c => {
+            if (c.isOn) {
+                c[tick]();
+            }
+        });
+    }
+
+    tick() {}
+
+    getComponents(name) {
+        return this._allComponents.filter(comp => comp.name == name);
+    }
+
+    /**
+     * @param {Array<FrameComponent>} components
+     */
+    addComponents(components) {
+        components = components.filter(c => c instanceof FrameComponent);
+        this._allComponents.forEach(comp => {
+            comp[onAddComp](components);
+        });
+        this._allComponents = this._allComponents.concat(components);
+        components.forEach(c => {
+            this.append(c);
+            c.init(this._frame, this);
+        });
+
+        if (this._frame && this._frame.isOpen) {
+            components.forEach(c => {
+                if (c.isOn) {
+                    c[onOpen]();
+                }
+            });
+        }
+    }
+
+    [onAddComp](c) {
+        this.onAddComponents(c);
+        this._allComponents.forEach(comp => {
+            comp[onAddComp](c);
+        });
+    }
+
+    [onOpen]() {
+        this.onOpen();
+        this._allComponents.forEach(c => {
+            c[onOpen]();
+        });
+    }
+
+    [onKeyDown](keys) {
+        this.onKeyDown(keys);
+        this._allComponents.forEach(c => {
+            c[onKeyDown](keys);
+        });
+    }
+
+    [onKeyUp](keys) {
+        this.onKeyUp(keys);
+        this._allComponents.forEach(c => {
+            c[onKeyUp](keys);
+        });
+    }
+
+    [onMouseDown](evt) {
+        this.onMouseDown(evt);
+        this._allComponents.forEach(c => {
+            c[onMouseDown](evt);
+        });
+    }
+    
+    [onMouseUp](evt) {
+        this.onMouseUp(evt);
+        this._allComponents.forEach(c => {
+            c[onMouseUp](evt);
+        });
+    }
+
+    [onMouseMove](evt) {
+        this.onMouseMove(evt);
+        this._allComponents.forEach(c => {
+            c[onMouseMove](evt);
+        });
+    }
+
+    [onClick](evt) {
+        this.onClick(evt);
+        this._allComponents.forEach(c => {
+            c[onClick](evt);
+        });
+    }
+
+    [onFocus]() {
+        this.onFocus();
+        this._allComponents.forEach(c => {
+            c[onFocus]();
+        });
+    }
+    
+    [onBlur]() {
+        this.onBlur();
+        this._allComponents.forEach(c => {
+            c[onBlur]();
+        });
+    }
+    
+    [onResize]() {
+        this.onResize();
+        this._allComponents.forEach(c => {
+            c[onResize]();
+        });
+    }
+
+    [onSwitchOn](comp) {
+        this.onSwitchOn(comp);
+        this._allComponents.forEach(c => {
+            c[onSwitchOn](comp);
+        });
+    }
+
+    [onSwitchOff](comp) {
+        this.onSwitchOff(comp);
+        this._allComponents.forEach(c => {
+            c[onSwitchOff](comp);
+        });
+    }
+
+    [onTouchStart](touches) {
+        this.onTouchStart(touches);
+        this._allComponents.forEach(c => {
+            c[onTouchStart](touches);
+        });
+    }
+
+    [onTouchMove](touches) {
+        this.onTouchMove(touches);
+        this._allComponents.forEach(c => {
+            c[onTouchMove](touches);
+        });
+    }
+
+    [onTouchEnd](touches) {
+        this.onTouchEnd(touches);
+        this._allComponents.forEach(c => {
+            c[onTouchEnd](touches);
+        });
+    }
+
+    [onTouchCancel](touches) {
+        this.onTouchCancel(touches);
+        this._allComponents.forEach(c => {
+            c[onTouchCancel](touches);
+        });
+    }
+
+    [onToggleScreen](mode) {
+        this.onToggleScreen(mode);
+        this._allComponents.forEach(c => {
+            c[onToggleScreen](mode);
+        });
+    }
+}
+
+export class Frame extends FrameComponent {
     constructor() {
         super();
 
@@ -59,10 +279,6 @@ export class Frame extends SwitchableElement {
          * @type {Array<FrameComponent>}
          */
         this._onComponents = [];
-        /**
-         * @type {Array<FrameComponent>}
-         */
-        this._allComponents = [];
 
         this._renderableComp = [];
 
@@ -104,11 +320,18 @@ export class Frame extends SwitchableElement {
             }
         };
 
+        this._touches = {
+            start: [],
+            move: [],
+            end: [],
+            cancel: []
+        };
+
         this._keysDown = {};
         this._keysUp = {};
 
         this._fc.addEventListener('switchOff', e => {
-            const trgt = e.target;
+            const trgt = e.detail.target;
             if (trgt instanceof FrameComponent) {
                 queueMicrotask(() => {
                     this._onComponents.delete(trgt);
@@ -121,8 +344,8 @@ export class Frame extends SwitchableElement {
         });
 
         this._fc.addEventListener('switchOn', e => {
-            const trgt = e.target;
-            if (trgt instanceof FrameComponent) {
+            const trgt = e.detail.target;
+            if (trgt instanceof FrameComponent && trgt.parentElement == this._fc) {
                 queueMicrotask(() => {
                     this._onComponents.push(trgt);
                     this._onComponents.sort(this._compSort);
@@ -177,6 +400,10 @@ export class Frame extends SwitchableElement {
     get priority() {
         return this._priority;
     }
+
+    get isOpen() {
+        return this._isOpened;
+    }
     
     /**
      * Adds components
@@ -193,7 +420,7 @@ export class Frame extends SwitchableElement {
             components = components.filter(comp => comp instanceof FrameComponent && !this._allComponents.includes(comp));
             components.forEach(c => {
                 this._fc.append(c);
-                c.init(this);
+                c.init(this, this);
                 this._allComponents.push(c);
 
                 if (c.isOn) {
@@ -219,13 +446,13 @@ export class Frame extends SwitchableElement {
             if (this._isOpened) {
                 components.forEach(c => {
                     if (c.isOn) {
-                        c.onOpen();
+                        c[onOpen]();
                     }
                 });
 
                 this._allComponents.forEach(c => {
                     if (!components.includes(c)) {
-                        c.onAddComponents(components);
+                        c[onAddComp](components);
                     }
                 })
             }
@@ -253,10 +480,6 @@ export class Frame extends SwitchableElement {
             
             component.delete();
         }
-    }
-
-    getComponents(name) {
-        return this._allComponents.filter(comp => comp.name == name);
     }
     
     /**
@@ -370,9 +593,41 @@ export class Frame extends SwitchableElement {
         this._time.currentTick = performance.now();
         this._time.deltaTick = this._time.currentTick - this._time.lastTick;
 
+        if (this._touches.start.length) {
+            this._onComponents.forEach(c => {
+                c[onTouchStart](this._touches.start);
+            });
+
+            this._touches.start = [];
+        }
+
+        if (this._touches.move.length) {
+            this._onComponents.forEach(c => {
+                c[onTouchMove](this._touches.move);
+            });
+
+            this._touches.move = [];
+        }
+
+        if (this._touches.end.length) {
+            this._onComponents.forEach(c => {
+                c[onTouchEnd](this._touches.end);
+            });
+
+            this._touches.end = [];
+        }
+
+        if (this._touches.cancel.length) {
+            this._onComponents.forEach(c => {
+                c[onTouchCancel](this._touches.cancel);
+            });
+
+            this._touches.cancel = [];
+        }
+
         if (this._mouse.down.isDown) {
             this._onComponents.forEach(c => {
-                c.onMouseDown(this._mouse.down);
+                c[onMouseDown](this._mouse.down);
             });
 
             this._mouse.down = {
@@ -385,7 +640,7 @@ export class Frame extends SwitchableElement {
 
         if (this._mouse.move.isMove) {
             this._onComponents.forEach(c => {
-                c.onMouseMove(this._mouse.move);
+                c[onMouseMove](this._mouse.move);
             });
 
             this._mouse.move = {
@@ -400,7 +655,7 @@ export class Frame extends SwitchableElement {
 
         if (this._mouse.up.isUp) {
             this._onComponents.forEach(c => {
-                c.onMouseUp(this._mouse.up);
+                c[onMouseUp](this._mouse.up);
             });
 
             this._mouse.up = {
@@ -413,7 +668,7 @@ export class Frame extends SwitchableElement {
 
         if (this._mouse.click.isClick) {
             this._onComponents.forEach(c => {
-                c.onMouseClick(this._mouse.click);
+                c[onClick](this._mouse.click);
             });
 
             this._mouse.click = {
@@ -426,7 +681,7 @@ export class Frame extends SwitchableElement {
 
         if (!isEmpty(this._keysDown)) {
             this._onComponents.forEach(c => {
-                c.onKeyDown(this._keysDown);
+                c[onKeyDown](this._keysDown);
             });
 
             this._keysDown = {};
@@ -434,13 +689,13 @@ export class Frame extends SwitchableElement {
         
         if (!isEmpty(this._keysUp)) {
             this._onComponents.forEach(c => {
-                c.onKeyUp(this._keysUp);
+                c[onKeyUp](this._keysUp);
             });
 
             this._keysUp = {};
         }
 
-        this._onComponents.forEach(c => c.tick());
+        this._onComponents.forEach(c => c[tick]());
 
         this._time.lastTick = this._time.currentTick;
     }
@@ -554,11 +809,17 @@ export class Frame extends SwitchableElement {
                 return document.exitFullscreen().then(() => {
                     this._isFullscreened = false;
                     this._isChanging = false;
+                    this._allComponents.forEach(c => {
+                        c[onToggleScreen](false);
+                    });
                     return 'screenOff';
                 });
             } else if (this._isFullscreened) {
                 document.exitPointerLock();
                 this._isFullscreened = false;
+                this._allComponents.forEach(c => {
+                    c[onToggleScreen](false);
+                });
                 return 'screenOff';
             }
         }
@@ -579,6 +840,9 @@ export class Frame extends SwitchableElement {
                 return this._fc.requestFullscreen().then(() => {
                     this._isFullscreened = true;
                     this._isChanging = false;
+                    this._allComponents.forEach(c => {
+                        c[onToggleScreen](true);
+                    });
                     return 'screenOn';
                 });
             }
@@ -619,40 +883,30 @@ export class Frame extends SwitchableElement {
                 isClick: false
             }
         };
+        this._touches = {
+            start: [],
+            move: [],
+            end: [],
+            cancel: []
+        }
+    }
+
+    /*Адаптировать под 1 функцию, не вызывать mouseDown, *Up, *Move, click*/
+    handleMouse(type, x, y, buttons, evt) {
+        const {left, top} = this._canvas.getBoundingClientRect();
+        this[type](x - left, y - top, buttons, evt);
+    }
+
+    handleTouches(touches, name) {
+        const {left, top} = this._canvas.getBoundingClientRect();
+        this._touches[name].push(...touches.map(({identifier, clientX, clientY}) => {
+            return {
+                identifier,
+                x: clientX - left,
+                y: clientY - top
+            };
+        }));
     }
 }
 
 customElements.define('frame-element', Frame);
-
-export class FrameComponent extends EventableElement {
-    constructor() {
-        super();
-        this._tickPriority = 1;
-        /**
-         * @type {Frame}
-         */
-        this._frame = null;
-        this._name = this.constructor.name;
-    }
-
-    get tickPriority() {
-        return this._tickPriority;
-    }
-
-    get name() {
-        return this._name;
-    }
-    
-    init(frame) {
-        this._frame = frame;
-    }
-
-    delete() {
-        if (this._frame) {
-            this._frame.deleteComponent(this);
-            this._frame = null;
-        }
-    }
-
-    tick() {}
-}

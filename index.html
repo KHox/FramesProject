@@ -19,7 +19,6 @@
 
         frame-element {
             border: 5px solid lightblue;
-            margin: 0 auto;
             width: calc(100% - 10px);
             height: calc(100% - 10px);
         }
@@ -50,9 +49,19 @@
     <script src="scripts/components/DrivingByScreen.js" type="module"></script>
     <script src="scripts/components/Debug/LoadingShips.js" type="module"></script>
     <script type="module">
-        addEventListener('load', () => {
-            Array.from(document.querySelector('#container').children).forEach(frame => frame.open());
-        });
+        import { isNumeric } from "../scripts/Lib/index.js";
+        let state = new URLSearchParams(location.search);
+        let count = state.get('shipsCount');
+
+        if (!isNumeric(count)) {
+            state.set('shipsCount', 15);
+            location.search = '?' + state;
+        } else {
+            addEventListener('load', () => {
+                document.querySelector('loading-ships').setAttribute('ships-count', count);
+                Array.from(document.querySelector('#container').children).forEach(frame => frame.open());
+            });
+        }
     </script>
 </body>
 </html>

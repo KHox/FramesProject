@@ -14,4 +14,9 @@ export class EventableElement extends SwitchableElement {
     onResize() {}
     onSwitchOn(comp) {}
     onSwitchOff(comp) {}
+    onTouchStart(touches) {}
+    onTouchMove(touches) {}
+    onTouchEnd(touches) {}
+    onTouchCancel(touches) {}
+    onToggleScreen(mode) {}
 }

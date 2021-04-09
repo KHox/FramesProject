@@ -130,7 +130,7 @@ export class Main extends FrameRenderableComponent {
         });
 
         //this._lookAtPoint = this._lookAtPoint.rotate(this._rotateAngle * this._frame.time.deltaFrame);
-        this.updateLook();
+        //this.updateLook();
     }
     
     onBlur() {
