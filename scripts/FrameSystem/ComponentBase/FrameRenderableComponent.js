@@ -33,4 +33,10 @@ export class FrameRenderableComponent extends FrameComponent {
      * @param {object} calculatedData 
      */
     postRender(ctx, calculatedData) {}
+
+    getRenderables() {
+        let r = super.getRenderables();
+        r.push(this);
+        return r;
+    }
 }

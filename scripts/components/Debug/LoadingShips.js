@@ -141,8 +141,8 @@ export class LoadingShips extends FrameRenderableComponent {
                 o.name = data.name;
                 /*
                 if (Math.random() < 0) {
-                    o.outline.color = getRandRGB();
                 }*/
+                o.outline.color = getRandRGB();
                 o.onload = onLoad;
                 
                 let x = i % data.columns;

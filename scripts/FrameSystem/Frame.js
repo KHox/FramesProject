@@ -43,6 +43,7 @@ export class FrameComponent extends EventableElement {
          * @type {Array<FrameComponent>}
          */
         this._allComponents = [];
+        this._cont = this;
     }
 
     get tickPriority() {
@@ -51,6 +52,10 @@ export class FrameComponent extends EventableElement {
 
     get name() {
         return this._name;
+    }
+
+    get parent() {
+        return this._parent;
     }
     
     init(frame, parent) {
@@ -81,22 +86,41 @@ export class FrameComponent extends EventableElement {
      */
     addComponents(components) {
         components = components.filter(c => c instanceof FrameComponent);
+        components.forEach(c => {
+            this._cont.append(c);
+            c.init(this._frame, this);
+        });
+
+        let renderables = components.reduce((rend, comp) => {
+            return rend.concat(comp.getRenderables());
+        }, []);
+
+        if (this._frame) {
+            this._frame.addRenderables(renderables);
+        }
+
         this._allComponents.forEach(comp => {
             comp[onAddComp](components);
         });
         this._allComponents = this._allComponents.concat(components);
-        components.forEach(c => {
-            this.append(c);
-            c.init(this._frame, this);
-        });
+
+        let on = components.filter(c => c.isOn);
 
         if (this._frame && this._frame.isOpen) {
-            components.forEach(c => {
-                if (c.isOn) {
-                    c[onOpen]();
-                }
+            on.forEach(c => {
+                c[onOpen]();
             });
         }
+
+        return on;
+    }
+
+    getRenderables() {
+        let renderables = [];
+        this._allComponents.forEach(c => {
+            renderables = renderables.concat(c.getRenderables());
+        });
+        return renderables;
     }
 
     [onAddComp](c) {
@@ -114,45 +138,57 @@ export class FrameComponent extends EventableElement {
     }
 
     [onKeyDown](keys) {
-        this.onKeyDown(keys);
-        this._allComponents.forEach(c => {
-            c[onKeyDown](keys);
-        });
+        if (this.isOn) {
+            this.onKeyDown(keys);
+            this._allComponents.forEach(c => {
+                c[onKeyDown](keys);
+            });
+        }
     }
 
     [onKeyUp](keys) {
-        this.onKeyUp(keys);
-        this._allComponents.forEach(c => {
-            c[onKeyUp](keys);
-        });
+        if (this.isOn) {
+            this.onKeyUp(keys);
+            this._allComponents.forEach(c => {
+                c[onKeyUp](keys);
+            });
+        }
     }
 
     [onMouseDown](evt) {
-        this.onMouseDown(evt);
-        this._allComponents.forEach(c => {
-            c[onMouseDown](evt);
-        });
+        if (this.isOn) {
+            this.onMouseDown(evt);
+            this._allComponents.forEach(c => {
+                c[onMouseDown](evt);
+            });
+        }
     }
     
     [onMouseUp](evt) {
-        this.onMouseUp(evt);
-        this._allComponents.forEach(c => {
-            c[onMouseUp](evt);
-        });
+        if (this.isOn) {
+            this.onMouseUp(evt);
+            this._allComponents.forEach(c => {
+                c[onMouseUp](evt);
+            });
+        }
     }
 
     [onMouseMove](evt) {
-        this.onMouseMove(evt);
-        this._allComponents.forEach(c => {
-            c[onMouseMove](evt);
-        });
+        if (this.isOn) {
+            this.onMouseMove(evt);
+            this._allComponents.forEach(c => {
+                c[onMouseMove](evt);
+            });
+        }
     }
 
     [onClick](evt) {
-        this.onClick(evt);
-        this._allComponents.forEach(c => {
-            c[onClick](evt);
-        });
+        if (this.isOn) {
+            this.onClick(evt);
+            this._allComponents.forEach(c => {
+                c[onClick](evt);
+            });
+        }
     }
 
     [onFocus]() {
@@ -191,31 +227,39 @@ export class FrameComponent extends EventableElement {
     }
 
     [onTouchStart](touches) {
-        this.onTouchStart(touches);
-        this._allComponents.forEach(c => {
-            c[onTouchStart](touches);
-        });
+        if (this.isOn) {
+            this.onTouchStart(touches);
+            this._allComponents.forEach(c => {
+                c[onTouchStart](touches);
+            });
+        }
     }
 
     [onTouchMove](touches) {
-        this.onTouchMove(touches);
-        this._allComponents.forEach(c => {
-            c[onTouchMove](touches);
-        });
+        if (this.isOn) {
+            this.onTouchMove(touches);
+            this._allComponents.forEach(c => {
+                c[onTouchMove](touches);
+            });
+        }
     }
 
     [onTouchEnd](touches) {
-        this.onTouchEnd(touches);
-        this._allComponents.forEach(c => {
-            c[onTouchEnd](touches);
-        });
+        if (this.isOn) {
+            this.onTouchEnd(touches);
+            this._allComponents.forEach(c => {
+                c[onTouchEnd](touches);
+            });
+        }
     }
 
     [onTouchCancel](touches) {
-        this.onTouchCancel(touches);
-        this._allComponents.forEach(c => {
-            c[onTouchCancel](touches);
-        });
+        if (this.isOn) {
+            this.onTouchCancel(touches);
+            this._allComponents.forEach(c => {
+                c[onTouchCancel](touches);
+            });
+        }
     }
 
     [onToggleScreen](mode) {
@@ -329,35 +373,53 @@ export class Frame extends FrameComponent {
 
         this._keysDown = {};
         this._keysUp = {};
+        
+        this._block = false;
 
         this._fc.addEventListener('switchOff', e => {
+            if (this._block) return;
             const trgt = e.detail.target;
-            if (trgt instanceof FrameComponent) {
-                queueMicrotask(() => {
-                    this._onComponents.delete(trgt);
-                    if (trgt instanceof FrameRenderableComponent) {
-                        this._renderableComp.delete(trgt);
+            queueMicrotask(() => {
+                if (trgt instanceof FrameRenderableComponent) {
+                    this._renderableComp.delete(this._renderableComp.find(o => o.component == trgt));
+
+                    if (trgt.parentElement == this._fc) {
+                        this._onComponents.delete(trgt);
                     }
-                    this._allComponents.forEach(c => c.onSwitchOff(trgt));
-                });
-            }
+                    
+                    trgt.parent[onSwitchOff](trgt);
+                } else if (trgt instanceof FrameComponent && trgt.parentElement == this._fc) {
+                    this._onComponents.delete(trgt);
+
+                    trgt.parent[onSwitchOff](trgt);
+                }
+            });
         });
 
         this._fc.addEventListener('switchOn', e => {
+            if (this._block) return;
             const trgt = e.detail.target;
-            if (trgt instanceof FrameComponent && trgt.parentElement == this._fc) {
-                queueMicrotask(() => {
+            queueMicrotask(() => {
+                if (trgt instanceof FrameRenderableComponent) {
+                    this.addRenderables([trgt]);
+
+                    if (trgt.parentElement == this._fc) {
+                        this._onComponents.push(trgt);
+                        this._onComponents.sort(this._compSort);
+                    }
+                    
+                    trgt.parent[onSwitchOn](trgt);
+                } else if (trgt instanceof FrameComponent && trgt.parentElement == this._fc) {
                     this._onComponents.push(trgt);
                     this._onComponents.sort(this._compSort);
 
-                    if (trgt instanceof FrameRenderableComponent) {
-                        this._renderableComp.push(trgt);
-                        this._renderableComp.sort(this._rendCompSort);
-                    }
-                    this._allComponents.forEach(c => c.onSwitchOn(trgt));
-                });
-            }
+                    trgt.parent[onSwitchOn](trgt);
+                }
+            });
         });
+
+        this._frame = this;
+        this._cont = this._fc;
 
         console.log('created');
     }
@@ -411,59 +473,31 @@ export class Frame extends FrameComponent {
      */
     addComponents(components) {
         queueMicrotask(() => {
-            this._addComponents(components);
+            this._onComponents = this._onComponents.concat(super.addComponents(components));
+            this._onComponents.sort(this._compSort);
         });
     }
 
-    _addComponents(components) {
-        if (components instanceof Array) {
-            components = components.filter(comp => comp instanceof FrameComponent && !this._allComponents.includes(comp));
-            components.forEach(c => {
-                this._fc.append(c);
-                c.init(this, this);
-                this._allComponents.push(c);
-
-                if (c.isOn) {
-                    this._onComponents.push(c);
-
-                    if (c instanceof FrameRenderableComponent) {
-                        this._renderableComp.push({
-                            id: renderId,
-                            component: c
-                        });
-
-                        this._worker.postMessage({
-                            method: 'addRender',
-                            id: renderId,
-                            render: getFunctionBody(c.render),
-                            initRender: getFunctionBody(c.initRender)
-                        });
-                        renderId++;
-                    }
-                }
-            });
-
-            if (this._isOpened) {
-                components.forEach(c => {
-                    if (c.isOn) {
-                        c[onOpen]();
-                    }
+    /**
+     * @param {Array<FrameRenderableComponent>} renderables
+     */
+    addRenderables(renderables) {
+        this._renderableComp = this._renderableComp.concat(
+            renderables.map(c => {
+                this._worker.postMessage({
+                    method: 'addRender',
+                    id: renderId,
+                    render: getFunctionBody(c.render),
+                    initRender: getFunctionBody(c.initRender)
                 });
 
-                this._allComponents.forEach(c => {
-                    if (!components.includes(c)) {
-                        c[onAddComp](components);
-                    }
-                })
-            }
-
-
-
-            this._onComponents.sort(this._compSort);
-            this._renderableComp.sort(this._rendCompSort);
-        } else {
-            throw new TypeError('Array expected');
-        }
+                return {
+                    id: renderId++,
+                    component: c
+                };
+            })
+        );
+        this._renderableComp.sort(this._rendCompSort);
     }
 
     deleteComponent(component) {
@@ -545,6 +579,7 @@ export class Frame extends FrameComponent {
         this._centerY = this._height / 2;
 
         this._onComponents.forEach(c => c.onResize());
+        console.log('resize');
     }
 
     _checkChildren() {

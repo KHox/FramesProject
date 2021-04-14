@@ -1,8 +1,10 @@
-import { FrameComponent } from "../FrameSystem/index.js";
+import { FrameRenderableComponent } from "../FrameSystem/index.js";
 import { Vec2 } from "../Lib/index.js";
 import { DrawingMapSystem, Object2D } from "./DrawingMapSystem/DrawingMapSystem.js";
 
-export class ShipBehavior extends FrameComponent {
+let id = 0;
+
+export class ShipBehavior extends FrameRenderableComponent {
     constructor() {
         super();
 
@@ -14,7 +16,17 @@ export class ShipBehavior extends FrameComponent {
         this._p = null;
 
         this._fm = false;
-        
+
+        /*if (id == 0) {
+            this.postRender = function() {
+                if (this._p) {
+                    this._dms.drawPoint(this._p, 'lime', true);
+                }
+            };
+
+            id++;
+        }*/
+
         this.onTouchStart = this.onTouchMove = this._onTouch = this._onTouch.bind(this);
         this.onMouseDown = this.onMouseMove = this.onMouseUp = this.onMouse = this.onMouse.bind(this);
     }
@@ -29,21 +41,22 @@ export class ShipBehavior extends FrameComponent {
          */
         this._dms = this._frame.getComponents('DrawingMapSystem')[0];
     }
-
+    
     onToggleScreen(mode) {
         if (mode && !this._p) {
             this._p = new Vec2(this._frame.centerX, this._frame.centerY);
         }
         this._fm = mode;
+        console.log('toggle');
     }
-
+    
     onMouse(data) {
         if (this._fm) {
             this._p = this._p.plus(new Vec2(data.dx || 0, data.dy || 0));
         } else {
             this._p = new Vec2(data.x, data.y);
         }
-        this._ship.transform.lookAt(this._dms.screenToWorldMatrix(this._p));
+        this.rotateShipTo(this._p);
     }
 
     onTouchEnd(touches) {
@@ -67,10 +80,21 @@ export class ShipBehavior extends FrameComponent {
             t = touches.find(t => t.identifier == this._tId);
         }
         if (t) {
-            this._ship.transform.lookAt(this._dms.screenToWorldMatrix(new Vec2(t.x, t.y)));
+            this._p = new Vec2(t.x, t.y);
+            this.rotateShipTo(this._p);
             return t;
         }
         return null;
+    }
+
+    onCameraChanged() {
+        if (this._p) {
+            this.rotateShipTo(this._p);
+        }
+    }
+
+    rotateShipTo(point) {
+        this._ship.transform.lookAt(this._dms.screenToWorldMatrix(point));
     }
 }
 

@@ -36,30 +36,30 @@ export class SwitchableElement extends HTMLElement {
             if (newValue === null) {
                 if (!this._switchMode) {
                     this._switchMode = true;
-                    if (this.parentNode) {
-                        this.parentNode.dispatchEvent(
-                            new CustomEvent('switchOn', {
-                                cancelable: true,
-                                detail: {
-                                    target: this
-                                }
-                            })
-                        );
-                    }
+                    
+                    this.dispatchEvent(
+                        new CustomEvent('switchOn', {
+                            cancelable: true,
+                            bubbles: true,
+                            detail: {
+                                target: this
+                            }
+                        })
+                    );
                 }
             } else {
                 if (this._switchMode !== false) {
                     this._switchMode = false;
-                    if (this.parentNode) {
-                        this.parentNode.dispatchEvent(
-                            new CustomEvent('switchOff', {
-                                cancelable: true,
-                                detail: {
-                                    target: this
-                                }
-                            })
-                        );
-                    }
+
+                    this.parentNode.dispatchEvent(
+                        new CustomEvent('switchOff', {
+                            cancelable: true,
+                            bubbles: true,
+                            detail: {
+                                target: this
+                            }
+                        })
+                    );
                 }
             }
         }

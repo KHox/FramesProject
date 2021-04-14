@@ -12,6 +12,7 @@ export class Transform {
     }
 
     set position(v) {
+        this._startChangeEvent();
         this._p.set(...v.valueOf());
     }
 
@@ -24,17 +25,36 @@ export class Transform {
     }
 
     set rotation(v) {
+        this._startChangeEvent();
         this._angle = v;
         this._rm = Transform.getRotationMatrix(v);
     }
 
     set(x, y, rotation) {
+        this._startChangeEvent();
         this._p.set(x, y);
         this.rotation = rotation;
     }
 
+    setCallback(cb) {
+        this._callback = cb;
+    }
+
     valueOf() {
-        [this._a, this._b, this._c, this._d, this._p.x, this._p.y];
+        return [this._a, this._b, this._c, this._d, this._p.x, this._p.y];
+    }
+
+    _startChangeEvent() {
+        if (this._callback instanceof Function) {
+            let result = {
+                x: this._p.x,
+                y: this._p.y,
+                rotation: this._angle
+            };
+            queueMicrotask(() => {
+                this._callback(result);
+            });
+        }
     }
 
     /**
