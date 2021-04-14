@@ -1,23 +1,25 @@
 import { FrameComponent, FrameRenderableComponent } from "../../FrameSystem/index.js";
 import { Collider, isNumeric, Transform, Vec2 } from "../../Lib/index.js";
 
+const onCameraChanged = Symbol('onCameraChanged');
+
 export class Object2D extends FrameComponent {
     constructor(src) {
         super();
         this._name = 'Unknown object';
-        this._height = this._width = null;
+        this._ho = this._wo = this._height = this._width = null;
         this._loads = [];
 
         this._image = new Image();
         this._image.onload = () => {
             if (this._width == null) {
-                this._width = this._image.width;
+                this.width = this._image.width;
             }
             
             if (this._height == null) {
-                this._height = this._image.height;
+                this.height = this._image.height;
             }
-
+            
             this._loads.forEach(f => f(this));
         }
 
@@ -25,11 +27,11 @@ export class Object2D extends FrameComponent {
             this._image.src = src;
         }
 
-        this._outline = {
-            color: '',
-            width: 5,
-            height: 5
-        };
+        this._currImage = this._image;
+
+        this._outlineColor = '';
+        this._outlineWidth = 5;
+        this._outlineHeight = 5;
         
         this._transform = new Transform();
     }
@@ -49,7 +51,12 @@ export class Object2D extends FrameComponent {
     set width(v) {
         if (isNumeric(v)) {
             this._width = v;
+            this._calcVolumes('width');
         }
+    }
+
+    get widthOffset() {
+        return this._wo;
     }
     
     get height() {
@@ -59,15 +66,48 @@ export class Object2D extends FrameComponent {
     set height(v) {
         if (isNumeric(v)) {
             this._height = v;
+            this._calcVolumes('height');
         }
     }
 
-    get outline() {
-        return this._outline;
+    get heightOffset() {
+        return this._ho;
+    }
+
+    get outlineColor() {
+        return this._outlineColor;
+    }
+
+    set outlineColor(v) {
+        this._outlineColor = v;
+        this._calcVolumes('color');
+    }
+
+    get outlineWidth() {
+        return this._outlineWidth;
+    }
+
+    set outlineWidth(v) {
+        if (isNumeric(v)) {
+            this._outlineWidth = v;
+            this._calcVolumes('lineWidth');
+        }
+    }
+
+
+    get outlineHeight() {
+        return this._outlineHeight;
+    }
+
+    set outlineHeight(v) {
+        if (isNumeric(v)) {
+            this._outlineHeight = v;
+            this._calcVolumes('lineHeight');
+        }
     }
 
     get image() {
-        return this._image;
+        return this._currImage;
     }
 
     get src() {
@@ -95,6 +135,37 @@ export class Object2D extends FrameComponent {
                 bubbles: true,
                 cancelable: true
             }));
+        }
+    }
+
+    _calcVolumes(v) {
+        if (this._outlineColor) {
+            let canv = document.createElement('canvas');
+            let ctx = canv.getContext('2d');
+            let w = this._width + 2 * this._outlineWidth;
+            let h = this._height + 2 * this._outlineHeight;
+
+            canv.width = w;
+            canv.height = h;
+
+            ctx.fillStyle = this._outlineColor;
+            ctx.fillRect(0, 0, w, h);
+
+            ctx.globalCompositeOperation = 'destination-in';
+
+            ctx.drawImage(this._image, 0, 0, w, h);
+
+            ctx.globalCompositeOperation = 'source-over';
+
+            ctx.drawImage(this._image, this._outlineWidth, this._outlineHeight, this._width, this._height);
+
+            this._currImage = canv;
+            this._ho = h;
+            this._wo = w;
+        } else {
+            this._currImage = this._image;
+            this._ho = this._height;
+            this._wo = this._width;
         }
     }
 
@@ -137,6 +208,14 @@ export class Object2D extends FrameComponent {
                 break;
         }
     }
+
+    [onCameraChanged](oldPos) {
+        this._allComponents.forEach(c => {
+            if (c.onCameraChanged instanceof Function) {
+                c.onCameraChanged(oldPos);
+            }
+        })
+    }
 }
 
 customElements.define('object-2d', Object2D);
@@ -148,6 +227,11 @@ export class DrawingMapSystem extends FrameRenderableComponent {
         this._dmsCtx = this._dmsCanvas.getContext('2d');
 
         this._cameraTransform = new Transform();
+        this._cameraTransform.setCallback((p) => {
+            this._objects.forEach(o => {
+                o[onCameraChanged](p);
+            });
+        });
         
         /**
          * @type {Array<Object2D>}
@@ -163,12 +247,20 @@ export class DrawingMapSystem extends FrameRenderableComponent {
                 }
             }
         });
-/*
+
+        this._blockAdding = false;
+
         this.addEventListener('switchOn', e => {
-            if (e.target instanceof Object2D && this._allComponents.includes(e.target) && !this._objects.includes(e.target)) {
-                this._objects.push(e.target);
+            if (!this._blockAdding && e.detail.target.parentElement == this) {
+                this._objects.push(e.detail.target);
             }
-        });*/
+        });
+
+        this.addEventListener('switchOff', e => {
+            if (!this._blockAdding && e.detail.target.parentElement == this) {
+                this._objects.delete(e.detail.target);
+            }
+        });
     }
 
     get cameraTransform() {
@@ -189,51 +281,17 @@ export class DrawingMapSystem extends FrameRenderableComponent {
      * @param {Object2D} o2d 
      */
     drawObject2d(o2d) {
-        let w, h, image;
-        
-        if (o2d.outline.color) {
-            let offW = o2d.outline.width;
-            let offH = o2d.outline.height;
-
-            w = o2d.width + offW * 2;
-            h = o2d.height + offH * 2;
-
-            this._dmsCanvas.width = w;
-            this._dmsCanvas.height = h;
-
-            this._dmsCtx.fillStyle = o2d.outline.color;
-            this._dmsCtx.fillRect(0, 0, w, h);
-
-            this._dmsCtx.globalCompositeOperation = 'destination-in';
-
-            this._dmsCtx.drawImage(o2d.image, 0, 0, w, h);
-
-            this._dmsCtx.globalCompositeOperation = 'source-over';
-
-            this._dmsCtx.drawImage(o2d.image, offW, offH, o2d.width, o2d.height);
-
-            image = this._dmsCanvas;
-        } else {
-            w = o2d.width;
-            h = o2d.height;
-            image = o2d.image;
-        }
-
-        
-        this._ctx.save();
+        let w = o2d.widthOffset;
+        let h = o2d.heightOffset;
         
         let rotM = Transform.getRotationMatrix(o2d.transform.rotation + this._cameraTransform.rotation);
         let pos = this.worldToCameraMatrix(o2d.transform.position);
 
         this._ctx.setTransform(...rotM, pos.x, pos.y);
 
-        //this._ctx.translate(x, y);
-        //this._ctx.rotate(o2d.transform.rotation - this._cameraTransform.rotation);
         this._ctx.translate(-w / 2, -h / 2);
 
-        this._ctx.drawImage(image, 0, 0, w, h);
-
-        this._ctx.restore();
+        this._ctx.drawImage(o2d.image, 0, 0, w, h);
     }
     
     getObjectsByName(name, isLive) {
@@ -258,8 +316,10 @@ export class DrawingMapSystem extends FrameRenderableComponent {
         this._ctx.stroke();
     }
 
-    drawPoint(p1, color, radius = 2) {
-        p1 = this.worldToCameraMatrix(p1);
+    drawPoint(p1, color, isScreen, radius = 2) {
+        if (!isScreen) {
+            p1 = this.worldToCameraMatrix(p1);
+        }
         this._ctx.beginPath();
         this._ctx.fillStyle = color;
         this._ctx.arc(p1.x, p1.y, radius, 0, 2 * Math.PI);
@@ -285,7 +345,9 @@ export class DrawingMapSystem extends FrameRenderableComponent {
     }
 
     addComponents(os2d) {
+        this._blockAdding = true;
         super.addComponents(os2d);
+        this._blockAdding = false;
 
         let filtered = os2d.filter(o2d => {
             if (o2d instanceof Object2D) {

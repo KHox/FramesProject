@@ -3,7 +3,7 @@ import { getRandRGB } from "../../Lib/index.js";
 import { Object2D } from "../DrawingMapSystem/DrawingMapSystem.js";
 import { ShipBehavior } from "../ShipBehavior.js";
 
-const shipsCount = 15;
+const shipsCount = 22;
 const stationsCount = 3;
 
 export class LoadingShips extends FrameRenderableComponent {
@@ -116,6 +116,7 @@ export class LoadingShips extends FrameRenderableComponent {
                     elem.width *= mul;
                     elem.height *= mul;
                 }
+                //elem.outlineColor = getRandRGB();
                 data.readyies.push(elem);
                 /*
                 if (data.loaded % 5000 == 0) {
@@ -142,7 +143,7 @@ export class LoadingShips extends FrameRenderableComponent {
                 /*
                 if (Math.random() < 0) {
                 }*/
-                o.outline.color = getRandRGB();
+                o.outlineColor = getRandRGB();
                 o.onload = onLoad;
                 
                 let x = i % data.columns;
