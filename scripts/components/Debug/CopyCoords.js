@@ -91,7 +91,7 @@ export class CopyCoords extends FrameRenderableComponent {
 
             this._state = 'copying';
             this._lastE = e;
-            navigator.clipboard.writeText(location.origin + '/?' + search).then(() => {
+            navigator.clipboard.writeText(location.origin + location.pathname + '?' + search).then(() => {
                 this._bgColor = 'lime';
                 this._text = 'Copied!';
             }).catch(err => {
