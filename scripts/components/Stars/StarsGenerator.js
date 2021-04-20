@@ -8,9 +8,9 @@ export const defY = 963;
 
 export const starsInSector = 2000;
 export const sectorWidth   = 1500000;
-export const sectorHeight  = 1000000;
-export const starOffset    = 1400000;
-export const starDelta     = 200000;
+export const sectorHeight  = 700000;
+export const starOffset    = 1300000;
+export const starDelta     = 400000;
 
 export class StarsGenerator extends FrameRenderableComponent {
     constructor() {

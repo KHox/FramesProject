@@ -1,5 +1,6 @@
 import { FrameRenderableComponent } from "../../FrameSystem/index.js";
 import { DrawingMapSystem } from "../DrawingMapSystem/DrawingMapSystem.js";
+import { CopyCoords } from "./CopyCoords.js";
 
 export class DevMode extends FrameRenderableComponent {
     constructor() {
@@ -12,6 +13,7 @@ export class DevMode extends FrameRenderableComponent {
          * @type {DrawingMapSystem}
          */
         this._dms = this._frame.getComponents('DrawingMapSystem')[0];
+        this.addComponents([new CopyCoords()]);
     }
 
     /**

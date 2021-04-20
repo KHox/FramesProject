@@ -603,7 +603,7 @@ export class Frame extends FrameComponent {
         this._centerX = this._width / 2;
         this._centerY = this._height / 2;
 
-        this._onComponents.forEach(c => c.onResize());
+        this[onResize]();
     }
 
     async close() {
