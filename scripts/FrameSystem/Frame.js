@@ -75,6 +75,10 @@ export class FrameComponent extends EventableElement {
         });
     }
 
+    _blockSwitch(evt) {
+        evt.stopPropagation();
+    }
+
     tick() {}
 
     getComponents(name) {
@@ -86,10 +90,17 @@ export class FrameComponent extends EventableElement {
      */
     addComponents(components) {
         components = components.filter(c => c instanceof FrameComponent);
+
+        this.addEventListener('switchOn', this._blockSwitch);
+        this.addEventListener('switchOff', this._blockSwitch);
+
         components.forEach(c => {
             this._cont.append(c);
             c.init(this._frame, this);
         });
+
+        this.removeEventListener('switchOn', this._blockSwitch);
+        this.removeEventListener('switchOff', this._blockSwitch);
 
         let renderables = components.reduce((rend, comp) => {
             return rend.concat(comp.getRenderables());
@@ -268,13 +279,23 @@ export class FrameComponent extends EventableElement {
             c[onToggleScreen](mode);
         });
     }
+
+    _checkChildren() {
+        const ch = Array.from(this.children);
+        ch.forEach(c => {
+            c._checkChildren?.();
+        });
+        this.addComponents(ch);
+    }
 }
 
 export class Frame extends FrameComponent {
     constructor() {
         super();
 
-        this._worker = new Worker(currentFolderPath + 'FrameWorker.js');
+        this._worker = new Worker(currentFolderPath + 'FrameWorker.js', {
+            type: 'module'
+        });
 
         this._tm = new TasksManager();
 
@@ -373,23 +394,18 @@ export class Frame extends FrameComponent {
 
         this._keysDown = {};
         this._keysUp = {};
-        
-        this._block = false;
 
         this._fc.addEventListener('switchOff', e => {
-            if (this._block) return;
             const trgt = e.detail.target;
             queueMicrotask(() => {
-                if (trgt instanceof FrameRenderableComponent) {
-                    this._renderableComp.delete(this._renderableComp.find(o => o.component == trgt));
+                if (trgt instanceof FrameComponent) {
+                    trgt.getRenderables().forEach(r => {
+                        this._renderableComp.delete(this._renderableComp.find(o => o.component == r));
+                    });
 
-                    if (trgt.parentElement == this._fc) {
+                    if (trgt.parentElement == this._cont) {
                         this._onComponents.delete(trgt);
                     }
-                    
-                    trgt.parent[onSwitchOff](trgt);
-                } else if (trgt instanceof FrameComponent && trgt.parentElement == this._fc) {
-                    this._onComponents.delete(trgt);
 
                     trgt.parent[onSwitchOff](trgt);
                 }
@@ -397,21 +413,14 @@ export class Frame extends FrameComponent {
         });
 
         this._fc.addEventListener('switchOn', e => {
-            if (this._block) return;
             const trgt = e.detail.target;
             queueMicrotask(() => {
-                if (trgt instanceof FrameRenderableComponent) {
-                    this.addRenderables([trgt]);
-
+                if (trgt instanceof FrameComponent) {
+                    this.addRenderables(trgt.getRenderables());
                     if (trgt.parentElement == this._fc) {
                         this._onComponents.push(trgt);
                         this._onComponents.sort(this._compSort);
                     }
-                    
-                    trgt.parent[onSwitchOn](trgt);
-                } else if (trgt instanceof FrameComponent && trgt.parentElement == this._fc) {
-                    this._onComponents.push(trgt);
-                    this._onComponents.sort(this._compSort);
 
                     trgt.parent[onSwitchOn](trgt);
                 }
@@ -488,7 +497,8 @@ export class Frame extends FrameComponent {
                     method: 'addRender',
                     id: renderId,
                     render: getFunctionBody(c.render),
-                    initRender: getFunctionBody(c.initRender)
+                    initRender: getFunctionBody(c.initRender),
+                    imports: c.imports
                 });
 
                 return {
@@ -569,7 +579,22 @@ export class Frame extends FrameComponent {
     }
 
     resize() {
-        if (!this._isFixed) this._resize();
+        if (!this._isFixed) {
+            if (this._width != this._canvas.clientWidth || this._height != this._canvas.clientHeight) {
+                this._resize();
+            }
+        }
+
+        if (this._waitForResize) {
+            if (this._waitForResize.mode || this._waitForResize.second) {
+                this._allComponents.forEach(c => {
+                    c[onToggleScreen](this._waitForResize.mode);
+                });
+                this._waitForResize = null;
+            } else {
+                this._waitForResize.second = true;
+            }
+        }
     }
 
     _resize() {
@@ -579,11 +604,6 @@ export class Frame extends FrameComponent {
         this._centerY = this._height / 2;
 
         this._onComponents.forEach(c => c.onResize());
-        console.log('resize');
-    }
-
-    _checkChildren() {
-        this.addComponents(Array.from(this.children));
     }
 
     async close() {
@@ -749,7 +769,6 @@ export class Frame extends FrameComponent {
                 };
             })
         });
-
     }
     
     _postRender(e) {
@@ -844,17 +863,13 @@ export class Frame extends FrameComponent {
                 return document.exitFullscreen().then(() => {
                     this._isFullscreened = false;
                     this._isChanging = false;
-                    this._allComponents.forEach(c => {
-                        c[onToggleScreen](false);
-                    });
+                    this._waitForResize = {mode: false, second: false};
                     return 'screenOff';
                 });
             } else if (this._isFullscreened) {
                 document.exitPointerLock();
                 this._isFullscreened = false;
-                this._allComponents.forEach(c => {
-                    c[onToggleScreen](false);
-                });
+                this._waitForResize = {mode: false, second: false};
                 return 'screenOff';
             }
         }
@@ -875,9 +890,7 @@ export class Frame extends FrameComponent {
                 return this._fc.requestFullscreen().then(() => {
                     this._isFullscreened = true;
                     this._isChanging = false;
-                    this._allComponents.forEach(c => {
-                        c[onToggleScreen](true);
-                    });
+                    this._waitForResize = {mode: true};
                     return 'screenOn';
                 });
             }

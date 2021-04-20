@@ -32,15 +32,18 @@
     <div id="container">
         <frame-element>
             <drawing-map-system>
+                <stars-generator></stars-generator>
             </drawing-map-system>
             <main-script></main-script>
             <fps-ups-system></fps-ups-system>
             <help-info></help-info>
             <driving-by-screen></driving-by-screen>
             <loading-ships></loading-ships>
+            <dev-mode></dev-mode>
         </frame-element>
     </div>
     <script src="scripts/FrameSystem/index.js" type="module"></script>
+    <script src="scripts/components/Debug/DevMode.js" type="module"></script>
     <script src="scripts/Extended Frames/WindowsFrame.js" type="module"></script>
     <script src="scripts/components/DrawingMapSystem/DrawingMapSystem.js" type="module"></script>
     <script src="scripts/components/MyComponent.js" type="module"></script>
@@ -48,6 +51,7 @@
     <script src="scripts/components/HelpInfo.js" type="module"></script>
     <script src="scripts/components/DrivingByScreen.js" type="module"></script>
     <script src="scripts/components/Debug/LoadingShips.js" type="module"></script>
+    <script src="scripts/components/Stars/StarsGenerator.js" type="module"></script>
     <script type="module">
         import { isNumeric } from "./scripts/Lib/index.js";
         let state = new URLSearchParams(location.search);
@@ -59,7 +63,23 @@
         } else {
             addEventListener('load', () => {
                 document.querySelector('loading-ships').setAttribute('ships-count', count);
-                Array.from(document.querySelector('#container').children).forEach(frame => frame.open());
+                Array.from(document.querySelector('#container').children).forEach(async frame => {
+                    await frame.open();
+                    const DMS = frame.getComponents('DrawingMapSystem')[0];
+                    const x = state.get('cameraX');
+                    const y = state.get('cameraY');
+                    const z = state.get('cameraZ');
+
+                    if (x) {
+                        DMS.setAttribute('camera-x', x);
+                    }
+                    if (y) {
+                        DMS.setAttribute('camera-y', y);
+                    }
+                    if (z) {
+                        DMS.setAttribute('camera-z', z);
+                    }
+                });
             });
         }
     </script>

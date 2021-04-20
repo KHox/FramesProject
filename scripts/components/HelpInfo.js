@@ -4,7 +4,7 @@ export class HelpInfo extends FrameRenderableComponent {
     constructor() {
         super();
         this._renderPriority = 999;
-        this._helpInfo = `Use Q/E to rotate a camera\nWASD + Shift to move\nMouseDown starts drawing a ray/Mouse up ends drawing`;
+        this._helpInfo = `Use Q/E to rotate a camera\nWASD + Shift to move\nArrowUp/ArrowDown move a camera along z-coordinate\nMouseDown starts drawing a ray/Mouse up ends drawing`;
 
         this._lines = this._helpInfo.split('\n');
     }

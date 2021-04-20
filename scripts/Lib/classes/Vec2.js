@@ -1,4 +1,4 @@
-import { isNumeric } from "../Math-Lib.js";
+import { isNumeric } from "../MathLib.js";
 
 export class Vec2 {
     constructor(x = 0, y = 0) {
@@ -53,20 +53,14 @@ export class Vec2 {
      * @param {Vec2} vector 
      */
     plus(vector) {
-        if (vector instanceof Vec2) {
-            return new Vec2(this._x + vector.x, this._y + vector.y);
-        }
-        throw new TypeError('Vec2 expected');
+        return new Vec2(this._x + vector.x, this._y + vector.y);
     }
 
     /**
      * @param {Vec2} vector 
      */
     minus(vector) {
-        if (vector instanceof Vec2) {
-            return new Vec2(this._x - vector.x, this._y - vector.y);
-        }
-        throw new TypeError('Vec2 expected');
+        return new Vec2(this._x - vector.x, this._y - vector.y);
     }
 
     /**
@@ -118,6 +112,13 @@ export class Vec2 {
         return [this._x, this._y];
     }
 
+    toJSON() {
+        return {
+            x: this.x,
+            y: this.y
+        };
+    }
+
     cross(vector) {
         if (vector instanceof Vec2) {
             return this._x * vector.y - this._y * vector.x;
@@ -142,5 +143,9 @@ export class Vec2 {
 
     rotateByMatrix(rotM) {
         return new Vec2(rotM[0], rotM[1]).mul(this._x).plus(new Vec2(rotM[2], rotM[3]).mul(this._y));
+    }
+
+    reverse() {
+        return new Vec2(-this._x, -this._y);
     }
 }

@@ -4,7 +4,7 @@ export class SwitchableElement extends HTMLElement {
     constructor() {
         super();
 
-        this._switchMode = null;
+        this._switchMode = true;
     }
 
     get isOn() {

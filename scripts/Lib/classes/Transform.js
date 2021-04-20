@@ -1,10 +1,9 @@
-import { CoordsData } from "./CoordData.js";
-import { Vec2 } from "./Vec2.js";
+import { Vec3Set } from "./Vec3Set.js";
 
 export class Transform {
-    constructor(x = 0, y = 0, angle = 0) {
+    constructor(x = 0, y = 0, z = 0, angle = 0) {
         this.rotation = angle;
-        this._p = new CoordsData(x, y);
+        this._p = new Vec3Set(x, y, z);
     }
 
     get position() {
@@ -30,9 +29,9 @@ export class Transform {
         this._rm = Transform.getRotationMatrix(v);
     }
 
-    set(x, y, rotation) {
+    set(x, y, z, rotation) {
         this._startChangeEvent();
-        this._p.set(x, y);
+        this._p.set(x, y, z);
         this.rotation = rotation;
     }
 
@@ -41,7 +40,16 @@ export class Transform {
     }
 
     valueOf() {
-        return [this._a, this._b, this._c, this._d, this._p.x, this._p.y];
+        return [this._p.x, this._p.y, this._p.z, this._angle];
+    }
+
+    toJSON() {
+        return {
+            rotation: this._angle,
+            x: this._p.x,
+            y: this._p.y,
+            z: this._p.z
+        }
     }
 
     _startChangeEvent() {
@@ -49,6 +57,7 @@ export class Transform {
             let result = {
                 x: this._p.x,
                 y: this._p.y,
+                z: this._p.z,
                 rotation: this._angle
             };
             queueMicrotask(() => {
@@ -70,6 +79,22 @@ export class Transform {
      */
     lookAt(point) {
         this.rotation = -point.minus(this._p).getAngle();
+    }
+
+    /**
+     * @param {Vec2} point
+     * @returns {Vec2}
+     */
+    translateFromWorld(point) {
+        return point.minus(this._p).rotateByMatrix(this._rm);
+    }
+
+    /**
+     * @param {Vec2} point
+     * @returns {Vec2}
+     */
+    translateToWorld(point) {
+        return this._p.plus(point.rotateByMatrix(Transform.reverseMatrix(this._rm)));
     }
 
     static getRotationMatrix(angle) {

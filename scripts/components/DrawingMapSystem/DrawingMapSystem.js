@@ -1,14 +1,13 @@
 import { FrameComponent, FrameRenderableComponent } from "../../FrameSystem/index.js";
-import { Collider, isNumeric, Transform, Vec2 } from "../../Lib/index.js";
+import { isNumeric, Transform, Vec2 } from "../../Lib/index.js";
 
-const onCameraChanged = Symbol('onCameraChanged');
+let objId = 0;
 
 export class Object2D extends FrameComponent {
     constructor(src) {
         super();
         this._name = 'Unknown object';
         this._ho = this._wo = this._height = this._width = null;
-        this._loads = [];
 
         this._image = new Image();
         this._image.onload = () => {
@@ -19,8 +18,15 @@ export class Object2D extends FrameComponent {
             if (this._height == null) {
                 this.height = this._image.height;
             }
-            
-            this._loads.forEach(f => f(this));
+            this.dispatchEvent(new CustomEvent('load', {
+                detail: this
+            }));
+        }
+
+        this._image.onerror = e => {
+            this.dispatchEvent(new CustomEvent('error', {
+                detail: e
+            }));
         }
 
         if (src) {
@@ -32,8 +38,14 @@ export class Object2D extends FrameComponent {
         this._outlineColor = '';
         this._outlineWidth = 5;
         this._outlineHeight = 5;
+
+        this._objId = objId++;
         
         this._transform = new Transform();
+    }
+
+    get objId() {
+        return this._objId;
     }
 
     get transform() {
@@ -110,6 +122,13 @@ export class Object2D extends FrameComponent {
         return this._currImage;
     }
 
+    set image(v) {
+        this._image = v;
+        this._width = v.width;
+        this._height = v.height;
+        this._calcVolumes();
+    }
+
     get src() {
         return this._image.src;
     }
@@ -118,9 +137,15 @@ export class Object2D extends FrameComponent {
         this._image.src = v;
     }
 
+    set onerror(func) {
+        if (func instanceof Function) {
+            this.addEventListener('error', e => func(e.detail));
+        }
+    }
+
     set onload(func) {
         if (func instanceof Function) {
-            this._loads.push(func);
+            this.addEventListener('load', e => func(e.detail));
         }
     }
 
@@ -140,10 +165,14 @@ export class Object2D extends FrameComponent {
 
     _calcVolumes(v) {
         if (this._outlineColor) {
-            let canv = document.createElement('canvas');
-            let ctx = canv.getContext('2d');
-            let w = this._width + 2 * this._outlineWidth;
-            let h = this._height + 2 * this._outlineHeight;
+            const canv = document.createElement('canvas');
+            const ctx = canv.getContext('2d');
+
+            const iw = this._image.width;
+            const ih = this._image.height;
+
+            const w = iw + 2 * this._outlineWidth;
+            const h = ih + 2 * this._outlineHeight;
 
             canv.width = w;
             canv.height = h;
@@ -157,11 +186,11 @@ export class Object2D extends FrameComponent {
 
             ctx.globalCompositeOperation = 'source-over';
 
-            ctx.drawImage(this._image, this._outlineWidth, this._outlineHeight, this._width, this._height);
+            ctx.drawImage(this._image, this._outlineWidth, this._outlineHeight, iw, ih);
 
             this._currImage = canv;
-            this._ho = h;
-            this._wo = w;
+            this._ho = this._height + 2 * this._outlineHeight * this._height / ih;
+            this._wo = this._width + 2 * this._outlineWidth * this._width / iw;
         } else {
             this._currImage = this._image;
             this._ho = this._height;
@@ -209,12 +238,16 @@ export class Object2D extends FrameComponent {
         }
     }
 
-    [onCameraChanged](oldPos) {
-        this._allComponents.forEach(c => {
-            if (c.onCameraChanged instanceof Function) {
-                c.onCameraChanged(oldPos);
-            }
-        })
+    toJSON() {
+        return {
+            objId: this.objId,
+            width: this.width,
+            height: this.height,
+            widthOffset: this.widthOffset,
+            heightOffset: this.heightOffset,
+            transform: this._transform.toJSON(),
+            radius: new Vec2(this.widthOffset, this.heightOffset).magnitude / 2
+        }
     }
 }
 
@@ -228,17 +261,22 @@ export class DrawingMapSystem extends FrameRenderableComponent {
 
         this._cameraTransform = new Transform();
         this._cameraTransform.setCallback((p) => {
-            this._objects.forEach(o => {
-                o[onCameraChanged](p);
-            });
+            this.dispatchEvent(new CustomEvent('cameraChanged', {
+                detail: {
+                    position: p
+                }
+            }))
         });
         
         /**
          * @type {Array<Object2D>}
          */
         this._objects = [];
+        this._objectsData = {}
 
         this._forLiveMap = new Map();
+
+        this._renderedCount = 0;
         
         this.addEventListener('changeName', e => {
             if (e.target instanceof Object2D) {
@@ -251,20 +289,39 @@ export class DrawingMapSystem extends FrameRenderableComponent {
         this._blockAdding = false;
 
         this.addEventListener('switchOn', e => {
-            if (!this._blockAdding && e.detail.target.parentElement == this) {
+            if (!this._blockAdding && e.detail.target instanceof Object2D && e.detail.target.parentElement == this) {
                 this._objects.push(e.detail.target);
+                this._objectsData[e.detail.target.objId] = e.detail.target;
             }
         });
 
         this.addEventListener('switchOff', e => {
+            console.log(e.detail.target);
             if (!this._blockAdding && e.detail.target.parentElement == this) {
                 this._objects.delete(e.detail.target);
+                this._objectsData[e.detail.target.objId] = null;
             }
         });
+
+        this._fovMul = 1;
+    }
+
+    get fov() {
+        return this._fovMul;
+    }
+
+    set fov(v) {
+        if (isNumeric(v) && v >= 0) {
+            this._fovMul = v;
+        }
     }
 
     get cameraTransform() {
         return this._cameraTransform;
+    }
+
+    get renderedCount() {
+        return this._renderedCount;
     }
     
     onOpen() {
@@ -273,8 +330,82 @@ export class DrawingMapSystem extends FrameRenderableComponent {
         this._center = new Vec2(this._frame.centerX, this._frame.centerY);
     }
 
-    postRender() {
-        this._objects.forEach(o2d => this.drawObject2d(o2d));
+    initRender() {
+        return {
+            compirer(v, elem) {
+                return v - elem.z;
+            }
+        }
+    }
+
+    get imports() {
+        return ['../Lib/classes/Transform.js', '../Lib/classes/Vec2.js', '../Lib/ArrayLib.js'];
+    }
+
+    preRender() {
+        return {
+            objectTransforms: this._objects.map(o => o.toJSON()),
+            camera: this._cameraTransform.toJSON(),
+            center: this._center.toJSON(),
+            cameraRadius: this._center.magnitude,
+            mul: this._fovMul
+        };
+    }
+
+    /**
+     * @param {object} data
+     * @param {Array<object>} data.objectTransforms
+     * @param {object} data.camera
+     */
+    render(data) {
+        const result = {
+            drawables: []
+        };
+
+        if (data.objectTransforms.length) {
+            const ct = new Transform(data.camera.x, data.camera.y, data.camera.z, data.camera.rotation);
+            const width = data.center.x * 2;
+
+            data.objectTransforms.forEach(o2d => {
+                const z = o2d.transform.z;
+                const dz = ct.position.z - z;
+                const scaleProjected = data.mul * width / (data.mul * width + dz);
+                
+                if (scaleProjected > 0) {
+                    const pos = ct.translateFromWorld(new Vec2(o2d.transform.x, o2d.transform.y)).mul(scaleProjected);
+                    if (pos.magnitude <= data.cameraRadius + o2d.radius * scaleProjected) {
+                        const rotM = Transform.getRotationMatrix(o2d.transform.rotation + ct.rotation);
+
+                        const ind = result.drawables.binarySearch(z, this.compirer);
+
+                        result.drawables.splice(ind, 0, {
+                            z,
+                            id: o2d.objId,
+                            scale: scaleProjected,
+                            pos: pos.plus(data.center).toJSON(),
+                            rotM
+                        });
+                    }
+                }
+                //const rt = new Vec2(w, h).rotateByMatrix(rotM);
+                //const rb = new Vec2(w, -h).rotateByMatrix(rotM);
+                
+                //const maxX = Math.max(Math.abs(rt.x), Math.abs(rb.x));
+                //const maxY = Math.max(Math.abs(rt.y), Math.abs(rb.y));
+            });//.filter(od => od.needDraw);
+        }
+
+        return result;
+    }
+
+    postRender(_, data) {
+        if (!data) return;
+        this._renderedCount = data.drawables.length;
+        data.drawables.forEach(od => {
+            this.renderObject2d(this._objectsData[od.id], od.pos, od.rotM, od.scale);
+        //    this.drawObject2d(this._objectsData[od.id]);
+        });
+        //this._objects.forEach(o2d => this.drawObject2d(o2d));
     }
 
     /**
@@ -282,6 +413,7 @@ export class DrawingMapSystem extends FrameRenderableComponent {
      */
     drawObject2d(o2d) {
         let w = o2d.widthOffset;
+
         let h = o2d.heightOffset;
         
         let rotM = Transform.getRotationMatrix(o2d.transform.rotation + this._cameraTransform.rotation);
@@ -292,6 +424,28 @@ export class DrawingMapSystem extends FrameRenderableComponent {
         this._ctx.translate(-w / 2, -h / 2);
 
         this._ctx.drawImage(o2d.image, 0, 0, w, h);
+    }
+
+    /**
+     * @param {Object2D} o2d
+     */
+    renderObject2d(o2d, pos, rotM, scale) {
+
+        pos = new Vec2(pos.x, pos.y);
+        /*
+        let dz = this._cameraTransform.position.z - o2d.transform.position.z;
+
+        let scaleProjected = this._fovMul * width / (this._fovMul * width + dz);
+        let x = (pos.x * scaleProjected) + this._center.x;
+        let y = (pos.y * scaleProjected) + this._center.y;
+        */
+        this._ctx.setTransform(...rotM, pos.x, pos.y);
+
+        //this._ctx.scale(0.5, 0.5);
+        
+        this._ctx.translate(-o2d.widthOffset / 2 * scale, -o2d.heightOffset / 2 * scale);
+
+        this._ctx.drawImage(o2d.image, 0, 0, o2d.widthOffset * scale, o2d.heightOffset * scale);
     }
     
     getObjectsByName(name, isLive) {
@@ -316,7 +470,7 @@ export class DrawingMapSystem extends FrameRenderableComponent {
         this._ctx.stroke();
     }
 
-    drawPoint(p1, color, isScreen, radius = 2) {
+    drawPoint(p1, color, isScreen, radius = 5) {
         if (!isScreen) {
             p1 = this.worldToCameraMatrix(p1);
         }
@@ -330,14 +484,14 @@ export class DrawingMapSystem extends FrameRenderableComponent {
      * @param {Vec2} point
      */
     worldToCameraMatrix(point) {
-        return point.minus(this._cameraTransform.position).rotateByMatrix(this._cameraTransform.rotationMatrix).plus(this._center);
+        return this._cameraTransform.translateFromWorld(point).plus(this._center);
     }
     
     /**
      * @param {Vec2} point
      */
     screenToWorldMatrix(point) {
-        return this._cameraTransform.position.plus(point.minus(this._center).rotateByMatrix(Transform.reverseMatrix(this._cameraTransform.rotationMatrix)));
+        return this._cameraTransform.translateToWorld(point.minus(this._center));
     }
 
     onResize() {
@@ -357,7 +511,32 @@ export class DrawingMapSystem extends FrameRenderableComponent {
                 return o2d.isOn;
             }
         });
+        filtered.forEach(o2d => {
+            this._objectsData[o2d.objId] = o2d;
+        });
         this._objects = this._objects.concat(filtered);
+    }
+
+    attributeChangedCallback(name, oldV, newV) {
+        super.attributeChangedCallback(name, oldV, newV);
+        console.log(name, oldV, newV);
+        if (isNumeric(newV)) {
+            switch (name) {
+                case 'camera-x':
+                    this._cameraTransform.position.x = +newV;
+                    break;
+                case 'camera-y':
+                    this._cameraTransform.position.y = +newV;
+                    break;
+                case 'camera-z':
+                    this._cameraTransform.position.z = +newV;
+                    break;
+            }
+        }
+    }
+
+    static get observedAttributes() {
+        return super.observedAttributes.concat('camera-x', 'camera-y', 'camera-z');
     }
 }
 

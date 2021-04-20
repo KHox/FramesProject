@@ -73,6 +73,9 @@ export class LoadingShips extends FrameRenderableComponent {
         let yOff = (hPart - fh) / 2;
         let xOff = (wPart - fw) / 2;
 
+        let maxSize = Math.min(hPart, wPart);
+        let offset = Math.min(5, 0.05 * maxSize);
+
         let data = {
             path,
             count,
@@ -93,7 +96,9 @@ export class LoadingShips extends FrameRenderableComponent {
             xOff,
             sX: this._frame.centerX - fw / 6,
             sY: this._frame.centerY - 25,
-            maxSize: Math.min(hPart, wPart),
+            maxSize,
+            offset,
+            client: maxSize - 2 * offset,
             time: performance.now()
         };
 
@@ -111,11 +116,11 @@ export class LoadingShips extends FrameRenderableComponent {
             let onLoad = elem => {
                 data.loaded++;
                 let max = Math.max(elem.width, elem.height);
-                if (max > data.maxSize) {
-                    let mul = data.maxSize / max;
-                    elem.width *= mul;
-                    elem.height *= mul;
-                }
+                let mul = data.client / max;
+                elem.width *= mul;
+                elem.height *= mul;
+                elem.outlineHeight = elem.outlineWidth = 5;//data.offset;
+
                 //elem.outlineColor = getRandRGB();
                 data.readyies.push(elem);
                 /*
@@ -130,6 +135,14 @@ export class LoadingShips extends FrameRenderableComponent {
                 }
             };
 
+            let onError = e => {
+                data.loaded++;
+                if (data.loaded == data.count) {
+                    this._dms.addComponents(data.readyies);
+                    console.log(performance.now());
+                }
+            }
+
             let delta = data.count - data.maked;
             if (delta > 10) {
                 delta = 10;
@@ -140,16 +153,18 @@ export class LoadingShips extends FrameRenderableComponent {
             for (let i = data.maked; i < data.maked + delta; i++) {
                 const o = new Object2D(data.path + `${i % data.divis + 1}.png`);
                 o.name = data.name;
-                /*
-                if (Math.random() < 0) {
-                }*/
                 o.outlineColor = getRandRGB();
                 o.onload = onLoad;
+                o.onerror = onError;
                 
                 let x = i % data.columns;
                 let y = (i - x) / data.columns;
                 
-                o.transform.position = [data.offsetX + data.xOff + x * data.wPart, data.offsetY + data.yOff + y * data.hPart];
+                o.transform.position = [
+                    data.offsetX + data.xOff + x * data.wPart,
+                    data.offsetY + data.yOff + y * data.hPart,
+                    (data.count - i - 1) * -1000
+                ];
 
                 if (data.name == 'ship') {
                     o.addComponents([

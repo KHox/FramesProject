@@ -1,9 +1,7 @@
 import { FrameRenderableComponent } from "../FrameSystem/index.js";
 import { Vec2 } from "../Lib/index.js";
 import { DrawingMapSystem, Object2D } from "./DrawingMapSystem/DrawingMapSystem.js";
-
 let id = 0;
-
 export class ShipBehavior extends FrameRenderableComponent {
     constructor() {
         super();
@@ -17,15 +15,7 @@ export class ShipBehavior extends FrameRenderableComponent {
 
         this._fm = false;
 
-        /*if (id == 0) {
-            this.postRender = function() {
-                if (this._p) {
-                    this._dms.drawPoint(this._p, 'lime', true);
-                }
-            };
-
-            id++;
-        }*/
+        this._id = id++;
 
         this.onTouchStart = this.onTouchMove = this._onTouch = this._onTouch.bind(this);
         this.onMouseDown = this.onMouseMove = this.onMouseUp = this.onMouse = this.onMouse.bind(this);
@@ -40,6 +30,7 @@ export class ShipBehavior extends FrameRenderableComponent {
          * @type {DrawingMapSystem}
          */
         this._dms = this._frame.getComponents('DrawingMapSystem')[0];
+        this._dms.addEventListener('cameraChanged', this.onCameraChanged.bind(this));
     }
     
     onToggleScreen(mode) {
@@ -47,7 +38,12 @@ export class ShipBehavior extends FrameRenderableComponent {
             this._p = new Vec2(this._frame.centerX, this._frame.centerY);
         }
         this._fm = mode;
-        console.log('toggle');
+    }
+
+    postRender() {
+        if (this._id == 0 && this._p) {
+            this._dms.drawPoint(this._p, 'lime', true);
+        }
     }
     
     onMouse(data) {

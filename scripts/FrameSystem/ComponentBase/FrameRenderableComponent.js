@@ -39,4 +39,8 @@ export class FrameRenderableComponent extends FrameComponent {
         r.push(this);
         return r;
     }
+
+    get imports() {
+        return []
+    }
 }

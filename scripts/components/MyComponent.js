@@ -19,6 +19,12 @@ export class Main extends FrameRenderableComponent {
         this._camLeftRot = 0;
         this._camRightRot = 0;
 
+        this._camZforw = 0;
+        this._camZback = 0;
+
+        this._fovL = 0;
+        this._fovR = 0;
+
         this._IF = new InputFormater();
         this._moveSpeed = 400;
         this._sprintMul = 1.5;
@@ -57,6 +63,19 @@ export class Main extends FrameRenderableComponent {
         if (keys.KeyE) {
             this._camRightRot = 1;
         }
+
+        if (keys.ArrowUp) {
+            this._camZforw = 1;
+        }
+        if (keys.ArrowDown) {
+            this._camZback = 1;
+        }
+        if (keys.ArrowLeft) {
+            this._fovL = 1;
+        }
+        if (keys.ArrowRight) {
+            this._fovR = 1;
+        }
     }
 
     onKeyUp(keys) {
@@ -82,12 +101,29 @@ export class Main extends FrameRenderableComponent {
         if (keys.KeyE) {
             this._camRightRot = 0;
         }
+
+        if (keys.ArrowUp) {
+            this._camZforw = 0;
+        }
+        if (keys.ArrowDown) {
+            this._camZback = 0;
+        }
+        if (keys.ArrowLeft) {
+            this._fovL = 0;
+        }
+        if (keys.ArrowRight) {
+            this._fovR = 0;
+        }
     }
 
     tick() {
         this._ct.position.x += this._direction.x * this._frame.time.deltaTick / 1000;
         this._ct.position.y += this._direction.y * this._frame.time.deltaTick / 1000;
         this._ct.rotation += (this._camLeftRot - this._camRightRot) * this._camRot * this._frame.time.deltaTick;
+        
+        this._ct.position.z += (this._camZback - this._camZforw) * this._frame.time.deltaTick * 20 * (this._isSprint ? this._sprintMul : 1);
+
+        this._dms.fov += (this._fovL - this._fovR) * this._frame.time.deltaTick / 500;
     }
 
     calcMovement() {
@@ -165,7 +201,7 @@ export class Main extends FrameRenderableComponent {
                 if (p) {
                     rays[i].isCollide = true;
                     rays[j].isCollide = true;
-                    this._dms.drawPoint(p, 'lightBlue', 5);
+                    this._dms.drawPoint(p, 'lightBlue');
                 }
             }
         }

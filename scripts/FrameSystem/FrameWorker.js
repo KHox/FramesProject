@@ -19,7 +19,17 @@ let worker = {
         }
     },
     addRender(data) {
-        this.renders[data.id] = (new Function('data', data.render)).bind((new Function('', data.initRender))());
+        this.renders[data.id] = emptyFunction;
+        let realRender;
+        Promise.all(data.imports.map(imp => import(imp))).then(impData => {
+            impData.forEach(imp => {
+                for (let key in imp) {
+                    self[key] = imp[key];
+                }
+            });
+            this.renders[data.id] = realRender;
+        });
+        realRender = (new Function('data', data.render)).bind((new Function('', data.initRender))());
     },
     deleteRender(data) {
         delete this.renders[data.id];
@@ -29,3 +39,5 @@ let worker = {
 worker.onMessage = worker.onMessage.bind(worker);
 
 addEventListener('message', worker.onMessage);
+
+function emptyFunction() {}
